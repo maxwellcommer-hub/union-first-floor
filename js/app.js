@@ -208,13 +208,13 @@
   const pins = {}, overlays = [];
   for (const s of SPACES) {
     const b = document.createElement('button');
-    b.className = 'pin';
+    b.className = 'pin dot';
     b.type = 'button';
     b.innerHTML = `${s.id}<span class="tip">${esc(s.title)}</span>`;
     b.setAttribute('aria-label', `${s.id}, ${s.title}`);
     b.addEventListener('click', () => { if (!pz.dragged) go(`#/space/${s.id}`); });
     const cone = () => cones.querySelector(`[data-id="${s.id}"]`);
-    b.addEventListener('pointerenter', () => cone().classList.add('hover'));
+    b.addEventListener('pointerenter', e => { if (e.pointerType === 'mouse') cone().classList.add('hover'); });
     b.addEventListener('pointerleave', () => cone().classList.remove('hover'));
     marks.appendChild(b);
     pins[s.id] = b;
@@ -223,7 +223,7 @@
   for (const z of D.zones) {
     const el = document.createElement('div');
     el.className = 'zlabel' + (z.hot ? ' hot' : '');
-    el.innerHTML = `<b>${z.n}</b><span>${esc(z.name)}</span>`;
+    el.innerHTML = `<b class="dot zone${z.hot ? ' hot' : ''}">${z.n}</b><span>${esc(z.name)}</span>`;
     marks.appendChild(el);
     overlays.push([el, P(z.at)]);
   }
@@ -241,7 +241,7 @@
   overlays.push([ft, P(D.scaleLabel)]);
 
   function placeMarks(t) {
-    for (const [el, [x, y]] of overlays) el.style.transform = `translate3d(${t.x + x * t.s}px,${t.y + y * t.s}px,0)` + (el.classList.contains('entry') ? ' translateX(-50%)' : el.classList.contains('zlabel') ? ' translate(-13px,-13px)' : el.classList.contains('ftlabel') ? ' translate(-100%,-100%)' : '');
+    for (const [el, [x, y]] of overlays) el.style.transform = `translate3d(${t.x + x * t.s}px,${t.y + y * t.s}px,0)` + (el.classList.contains('entry') ? ' translateX(-50%)' : el.classList.contains('zlabel') ? ' translate(-15px,-15px)' : el.classList.contains('ftlabel') ? ' translate(-100%,-100%)' : '');
     if (t.s > pz.fitScale() * 1.5) loadLayer(layer, true);
   }
 
@@ -346,6 +346,12 @@
   });
 
   /* ============================================================ sheet content */
+  function fadeIn() {
+    if (reduce.matches) return;
+    body.classList.remove('enter');
+    void body.offsetWidth; // restart the animation
+    body.classList.add('enter');
+  }
   const img = (src, alt, cls = '') => `<img src="${src}" alt="${esc(alt)}" loading="lazy" decoding="async" class="${cls}">`;
   const malikStep = id => D.persona.day.findIndex(d => d.space === id);
 
@@ -362,11 +368,11 @@
     </div>
     <h2 class="sec-title">Spaces</h2>
     <ul class="rows">${SPACES.map(s => `<li><button class="row" data-go="#/space/${s.id}" data-hl="${s.id}">
-      <span class="num">${s.id}</span><span class="t">${esc(s.title)}</span><span class="s">${esc(s.zoneLabel.replace(/^Zone \d+ · /, ''))}</span>
+      <span class="dot">${s.id}</span><span class="t">${esc(s.title)}</span><span class="s">${esc(s.zoneLabel.replace(/^Zone \d+ · /, ''))}</span>
     </button></li>`).join('')}</ul>
     <div class="sec-row"><h2 class="sec-title">Nine zones</h2><button class="link" data-layer-go="zones">Show on the plan</button></div>
     <ul class="rows">${D.zones.map(z => `<li><button class="row" data-zone="${z.n}">
-      <span class="z${z.hot ? ' hot' : ''}">${z.n}</span><span class="t">${esc(z.name)}</span><span class="s">${SPACES.filter(s => s.zone === z.n).map(s => s.id).join(', ')}</span>
+      <span class="dot zone${z.hot ? ' hot' : ''}">${z.n}</span><span class="t">${esc(z.name)}</span><span class="s">${SPACES.filter(s => s.zone === z.n).map(s => s.id).join(', ')}</span>
     </button></li>`).join('')}</ul>
     <div class="sec-row"><h2 class="sec-title">Loud to quiet</h2><button class="link" data-layer-go="heat">Show on the plan</button></div>
     <ul class="loud">${loudRows()}</ul>
@@ -483,10 +489,15 @@
       pz.go(pz.centerT(x, y, pz.fitScale() * 1.6));
     }
   });
+  // hovering a row in the list lights its pin; leaving the row puts the plan back
+  let hl = null;
+  const setHl = id => { if (id === hl || route.space || route.view !== 'map') return; hl = id; highlight(id); };
   body.addEventListener('pointerover', e => {
+    if (e.pointerType !== 'mouse') return;
     const r = e.target.closest('[data-hl]');
-    if (!route.space) highlight(r ? r.dataset.hl : null);
+    setHl(r ? r.dataset.hl : null);
   });
+  sheet.addEventListener('pointerleave', () => setHl(null));
 
   /* ============================================================ lightbox */
   const lb = $('#lightbox'), lbImg = $('#lbImg'), lbStage = $('#lbStage');
@@ -563,7 +574,7 @@
           <ul class="needs" style="margin-top:8px">${pe.needs.map(t => `<li>${esc(t)}</li>`).join('')}</ul></div>
         <div><p class="label muted">A typical day</p>
           <ul class="day" style="margin-top:8px">${pe.day.map((d, k) => `<li><button data-go="#/space/${d.space}?malik=${k}">
-            <span class="time">${esc(d.time)}</span><span>${esc(d.what)}</span><span class="go">${esc(d.space)}</span></button></li>`).join('')}</ul>
+            <span class="time">${esc(d.time)}</span><span>${esc(d.what)}</span><span class="dot">${esc(d.space)}</span></button></li>`).join('')}</ul>
           <div class="cta-row"><button class="btn primary" data-go="#/space/${pe.day[0].space}?malik=0">Follow his day on the plan</button></div>
         </div>
       </div>
@@ -721,7 +732,9 @@
     if (route.space) {
       const s = byId(route.space);
       document.title = `${s.id} ${s.title} · The First Floor`;
+      hl = null;
       body.innerHTML = spaceHTML(route.space, route.malik);
+      fadeIn();
       wireCompare(body);
       scroller.scrollTop = 0;
       if (layer === 'zones') setLayer('plan');
@@ -730,7 +743,9 @@
       focusSpace(route.space, !firstRender && !wasHidden);
     } else {
       document.title = 'The First Floor · Kansas Union Level 1';
+      hl = null;
       body.innerHTML = overviewHTML();
+      fadeIn();
       scroller.scrollTop = 0;
       highlight(null);
       if (isPhone()) setSheet(route.layer ? 'peek' : (prev.space ? 'peek' : sheetState === 'full' ? 'half' : sheetState), false);

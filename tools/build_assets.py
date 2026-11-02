@@ -55,6 +55,13 @@ def page_png(page, dpi):
 
 
 # ---------------------------------------------------------------- plan layers
+def small(d):
+    """True for a crimson shape no bigger than the entrance arrow (zone 1 is far larger)."""
+    nums = [float(v) for v in re.findall(r'-?\d+\.?\d*', d)]
+    xs, ys = nums[0::2], nums[1::2]
+    return bool(xs) and max(xs) - min(xs) < 80 and max(ys) - min(ys) < 120
+
+
 def svg_page(page, strip_zones=False):
     """Deck page as SVG with all type and the round zone markers removed."""
     raw = os.path.join(TMP, f'raw{page}.svg')
@@ -78,6 +85,8 @@ def svg_page(page, strip_zones=False):
                         parent.remove(kids[i - 1])
             elif strip_zones and tag == 'path' and ch.get('fill') in (KU_BLUE, CRIMSON):
                 parent.remove(ch)
+            elif tag == 'path' and ch.get('fill') == CRIMSON and small(ch.get('d') or ''):
+                parent.remove(ch)  # the entrance arrow: the site draws its own on every layer
     out = os.path.join(TMP, f'clean{page}{"_plain" if strip_zones else ""}.svg')
     tree.write(out)
     return out

@@ -67,7 +67,6 @@ a { color: inherit; }
   text-decoration: none; font-size: 13px; font-weight: 600; padding: 8px 16px; border-radius: 999px;
   white-space: nowrap; transition: background .2s, color .2s;
 }
-.tabs a:hover { background: rgba(255, 255, 255, .14); }
 .tabs a[aria-current="page"] { background: #fff; color: var(--blue); }
 .bar-meta {
   justify-self: end; display: flex; gap: 12px; font-size: 10px; font-weight: 600;
@@ -108,7 +107,6 @@ a { color: inherit; }
 .pin::after { /* bigger touch target than the dot */
   content: ''; position: absolute; inset: -6px; border-radius: 50%;
 }
-.pin:hover { scale: 1.12; }
 .pin.on { background: var(--crimson); scale: 1.22; z-index: 3; }
 .pin.dim { opacity: .45; }
 .pin .tip {
@@ -117,7 +115,6 @@ a { color: inherit; }
   font-size: 12px; font-weight: 600; letter-spacing: 0; opacity: 0; pointer-events: none;
   transition: opacity .15s;
 }
-.pin:hover .tip, .pin:focus-visible .tip, .pin.on .tip { opacity: 1; }
 .pin.on .tip { background: var(--crimson); }
 @media (hover: none) { .pin:not(.on) .tip { display: none; } }
 
@@ -173,7 +170,6 @@ a { color: inherit; }
   display: grid; place-items: center; color: var(--ink);
 }
 .zoom button + button { border-top: 1px solid var(--rule); }
-.zoom button:hover { background: var(--ground); }
 .ftlabel {
   position: absolute; left: 0; top: 0; pointer-events: none; padding-bottom: 2px;
   font-size: 10px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: var(--ink); white-space: nowrap;
@@ -204,9 +200,7 @@ a { color: inherit; }
 }
 .btn:active { transform: scale(.985); }
 .btn.primary { background: var(--blue); color: #fff; }
-.btn.primary:hover { background: #005A9C; }
 .btn.ghost { background: var(--card); color: var(--ink); box-shadow: inset 0 0 0 1px var(--rule-strong); }
-.btn.ghost:hover { background: #fff; box-shadow: inset 0 0 0 1px var(--ink); }
 .btn small { font-size: 11px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; opacity: .8; }
 
 .sec-head { display: flex; justify-content: space-between; align-items: baseline; margin: 28px 0 10px; }
@@ -219,7 +213,6 @@ a { color: inherit; }
   padding: 12px 16px; border: 0; background: none; text-align: left; min-height: 56px;
   transition: background .15s;
 }
-.row:hover, .row.hl { background: #F7F9FB; }
 .row .num { font-weight: 900; font-variation-settings: 'wdth' 62; font-size: 22px; color: var(--crimson); }
 .row .t { font-weight: 700; font-size: 15px; line-height: 1.2; }
 .row .s { display: block; font-size: 12px; color: var(--smoke); font-weight: 500; margin-top: 2px; }
@@ -242,7 +235,6 @@ a { color: inherit; }
   width: 44px; height: 44px; border-radius: 50%; border: 0; background: var(--card);
   box-shadow: inset 0 0 0 1px var(--rule-strong); display: grid; place-items: center; font-size: 18px;
 }
-.icon-btn:hover { box-shadow: inset 0 0 0 1px var(--ink); }
 .icon-btn:disabled { opacity: .35; cursor: default; }
 
 .space-head { display: grid; grid-template-columns: 1fr auto; align-items: end; gap: 12px; }
@@ -323,7 +315,6 @@ a { color: inherit; }
   min-height: 72px; border: 0; border-radius: var(--r-card); background: var(--card); text-align: left; padding: 12px 16px;
   display: flex; flex-direction: column; justify-content: center; gap: 4px;
 }
-.pager button:hover { box-shadow: inset 0 0 0 1px var(--ink); }
 .pager button.next { text-align: right; align-items: flex-end; background: var(--ink); color: #fff; }
 .pager button.next .label { color: rgba(255, 255, 255, .7); }
 .pager b { font-weight: 900; font-variation-settings: 'wdth' 62; font-size: 22px; text-transform: uppercase; line-height: 1; }
@@ -369,7 +360,6 @@ a { color: inherit; }
 }
 .day .time { font-weight: 900; font-variation-settings: 'wdth' 62; font-size: 26px; color: var(--blue); }
 .day .go { font-size: 11px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--crimson); white-space: nowrap; }
-.day button:hover .go { text-decoration: underline; }
 .needs { list-style: none; padding: 0; margin: 0; }
 .needs li { padding: 10px 0; border-top: 1px solid var(--rule); font-size: 14px; }
 .photos { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
@@ -407,7 +397,6 @@ a { color: inherit; }
   border: 0; padding: 0; text-align: left; background: var(--ground); border-radius: 20px; overflow: hidden;
   display: flex; flex-direction: column; transition: transform .2s var(--ease);
 }
-.pays button:hover { transform: translateY(-3px); }
 .pays img { width: 100%; aspect-ratio: 1.18; object-fit: cover; }
 .pays .body { padding: 16px 18px 20px; }
 .pays .n { font-weight: 900; font-variation-settings: 'wdth' 62; font-size: 40px; color: var(--blue); line-height: .9; }
@@ -527,7 +516,6 @@ a.btn { display: flex; }
 .tabs { background: none; padding: 0; gap: 22px; border-radius: 0; }
 .tabs a { padding: 6px 0; border-radius: 0; background: none !important; color: rgba(255,255,255,.78);
   border-bottom: 2px solid transparent; font-size: 14px; }
-.tabs a:hover { color: #fff; }
 .tabs a[aria-current="page"] { color: #fff; border-bottom-color: #fff; }
 
 .layers { border-radius: 4px; padding: 0; gap: 0; border: 1px solid var(--rule-strong); overflow: hidden; }
@@ -545,7 +533,6 @@ a.btn { display: flex; }
 .intro .lede { font-size: 15px; }
 .btn { border-radius: 4px; min-height: 48px; justify-content: center; font-size: 15px; }
 .btn.ghost { background: #fff; box-shadow: inset 0 0 0 1.5px var(--ink); }
-.btn.ghost:hover { background: var(--ground); box-shadow: inset 0 0 0 1.5px var(--ink); }
 .btn:active { transform: none; }
 .sec-title { font-weight: 900; font-variation-settings: 'wdth' 62; text-transform: uppercase; font-size: 26px;
   line-height: 1; margin: 36px 0 10px; }
@@ -556,8 +543,6 @@ a.btn { display: flex; }
 .rows li { border-top: 1px solid var(--rule); }
 .rows li + li { border-top: 1px solid var(--rule); }
 .row { grid-template-columns: 36px 1fr auto; padding: 10px 0; min-height: 48px; }
-.row:hover, .row.hl { background: none; }
-.row:hover .t, .row.hl .t { color: var(--blue); }
 .row .num { font-size: 20px; }
 .row .s { font-size: 12px; color: var(--smoke); text-align: right; margin: 0; }
 .row .z { width: 24px; height: 24px; font-size: 11px; }
@@ -569,7 +554,6 @@ a.btn { display: flex; }
 
 .back { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
 .icon-btn { box-shadow: none; border: 1px solid var(--rule-strong); border-radius: 4px; width: 40px; height: 40px; background: #fff; }
-.icon-btn:hover { box-shadow: none; border-color: var(--ink); }
 .tour { background: none; color: var(--ink); padding: 0; border-radius: 0; display: block; font-size: 15px; margin: 0 0 14px; }
 .tour b { font-weight: 900; font-variation-settings: 'wdth' 62; font-size: 22px; color: var(--crimson); margin-right: 6px; }
 .compare { border-radius: 6px; margin-top: 18px; }
@@ -590,8 +574,6 @@ a.btn { display: flex; }
 .size { margin: 4px 0 0; }
 .pager { border-top: 1px solid var(--rule); padding-top: 16px; margin-top: 8px; }
 .pager button { background: none; border-radius: 0; min-height: 56px; padding: 4px 0; }
-.pager button:hover { box-shadow: none; }
-.pager button:hover b { color: var(--blue); }
 .pager button span { font-size: 11px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--smoke); }
 .pager button.next { background: none; color: var(--ink); }
 .pager button.next span { color: var(--smoke); }
@@ -599,12 +581,8 @@ a.btn { display: flex; }
 .sb-no { font-size: 12px; font-weight: 600; font-variation-settings: 'wdth' 100; color: var(--smoke); letter-spacing: .1em; }
 .sheetblock.blue .sb-no { color: rgba(255,255,255,.75); }
 .pays button { transition: none; }
-.pays button:hover { transform: none; }
-.pays button:hover h3 { color: var(--blue); }
 .pays .go { color: var(--smoke); letter-spacing: .1em; }
 .day .go { font-weight: 900; font-variation-settings: 'wdth' 62; font-size: 20px; letter-spacing: 0; color: var(--crimson); }
-.day button:hover .go { text-decoration: none; }
-.day button:hover span:nth-child(2) { color: var(--blue); }
 
 .qgrid { background: #fff; border-radius: 28px; padding: 16px 40px 40px; gap: 0 48px; }
 .qcard { background: none; border-radius: 0; padding: 24px 0 8px; border-top: 1px solid var(--rule-strong); }
@@ -617,3 +595,68 @@ a.btn { display: flex; }
   .qgrid > .qcard:nth-child(2) { border-top: 1px solid var(--rule-strong); }
   .problem { font-size: 30px; }
 }
+
+/* ================================================================ number circles
+   One circle for every number on the site: navy for a space, KU Blue for a zone, crimson for zone 1
+   and for whatever is selected. */
+.dot {
+  display: inline-grid; place-items: center; flex: none;
+  width: 26px; height: 26px; border-radius: 50%; padding: 0;
+  background: var(--ink); color: #fff; border: 0;
+  font-family: var(--font); font-size: 11px; font-weight: 700; line-height: 1; letter-spacing: 0;
+  font-variant-numeric: tabular-nums; font-variation-settings: 'wdth' 100;
+}
+.dot.zone { background: var(--blue); }
+.dot.hot { background: var(--crimson); }
+.pin.dot, .zlabel .dot {
+  width: 30px; height: 30px; margin: 0; font-size: 12px; border: 2px solid #fff;
+}
+.pin.dot { margin: -15px 0 0 -15px; }
+.zlabel .dot { color: #fff; }
+.pin.on { background: var(--crimson); }
+.pin.dim { background: var(--smoke); opacity: .55; }
+.row .dot { justify-self: start; }
+.pin:focus-visible .tip, .pin.on .tip { opacity: 1; }
+.row.hl .t { color: var(--blue); }
+.day .dot { justify-self: end; }
+@media (max-width: 760px) { .pin.dot { width: 30px; height: 30px; margin: -15px 0 0 -15px; } }
+
+/* ================================================================ motion
+   Hover is for a mouse only, so a tap on a phone never leaves something stuck lit. */
+.pin { transition: background-color .2s, scale .2s var(--ease), opacity .25s; }
+.row .t, .pager b, .pays h3, .day span, .link, .back, .tabs a { transition: color .15s; }
+.btn { transition: background-color .15s, box-shadow .15s, color .15s; }
+.layers button { transition: background-color .2s, color .2s; }
+#sheetBody.enter { animation: sheet-in .28s var(--ease) both; }
+@keyframes sheet-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.lightbox:not([hidden]) { animation: lb-in .2s ease-out both; }
+@keyframes lb-in { from { opacity: 0; } to { opacity: 1; } }
+@media (hover: hover) and (pointer: fine) {
+  .tabs a:hover { background: rgba(255, 255, 255, .14); }
+  .pin:hover { scale: 1.12; }
+  .pin:hover .tip, .pin:focus-visible .tip, .pin.on .tip { opacity: 1; }
+  .zoom button:hover { background: var(--ground); }
+  .btn.primary:hover { background: #005A9C; }
+  .btn.ghost:hover { background: #fff; box-shadow: inset 0 0 0 1px var(--ink); }
+  .row:hover, .row.hl { background: #F7F9FB; }
+  .icon-btn:hover { box-shadow: inset 0 0 0 1px var(--ink); }
+  .pager button:hover { box-shadow: inset 0 0 0 1px var(--ink); }
+  .day button:hover .go { text-decoration: underline; }
+  .pays button:hover { transform: translateY(-3px); }
+  .tabs a:hover { color: #fff; }
+  .btn.ghost:hover { background: var(--ground); box-shadow: inset 0 0 0 1.5px var(--ink); }
+  .row:hover, .row.hl { background: none; }
+  .row:hover .t, .row.hl .t { color: var(--blue); }
+  .icon-btn:hover { box-shadow: none; border-color: var(--ink); }
+  .pager button:hover { box-shadow: none; }
+  .pager button:hover b { color: var(--blue); }
+  .pays button:hover { transform: none; }
+  .pays button:hover h3 { color: var(--blue); }
+  .day button:hover .go { text-decoration: none; }
+  .day button:hover span:nth-child(2) { color: var(--blue); }
+  .pin:hover { scale: 1.12; }
+  .pin.on:hover { scale: 1.22; }
+  .pin:hover .tip { opacity: 1; }
+}
+/* zone 1's circle sits on its own crimson fill: a white ring with a crimson rim keeps it readable */
+.zlabel .dot.hot { box-shadow: 0 0 0 1.5px var(--crimson); }

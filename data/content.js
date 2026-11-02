@@ -12,7 +12,7 @@ window.UNION = {
     status: 'Design development'
   },
 
-  entrance: [1482, 590],
+  entrance: [1482, 548],
   scaleLabel: [1797, 985],
 
   zones: [
