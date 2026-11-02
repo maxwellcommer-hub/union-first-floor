@@ -411,7 +411,6 @@ a { color: inherit; }
   .mark-title { font-size: 21px; }
   .tabs { padding: 3px; gap: 0; }
   .tabs a { padding: 7px 10px; font-size: 12px; }
-  .tabs a[data-tab="pays"] { display: none; }
 
   .viewport, .map-ui { right: 0; }
   .layers { left: 10px; right: 10px; top: 10px; justify-content: space-between; }

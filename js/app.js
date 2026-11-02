@@ -700,7 +700,7 @@
   function render() {
     const prev = route;
     route = parse();
-    const tab = route.view === 'survey' ? 'survey' : route.view === 'story' ? (route.anchor === 'pays' ? 'pays' : 'story') : 'map';
+    const tab = route.view === 'survey' ? 'survey' : route.view === 'story' ? 'story' : 'map';
     $$('.tabs a').forEach(a => { if (a.dataset.tab === tab) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
 
     if (route.view === 'survey') {
