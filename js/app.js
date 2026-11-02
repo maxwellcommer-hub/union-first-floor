@@ -710,7 +710,14 @@
       if (!storyBuilt) { story.innerHTML = storyHTML(); storyBuilt = true; }
       document.title = 'Our thinking · The First Floor';
       const target = route.anchor && document.getElementById(route.anchor);
-      window.scrollTo({ top: target ? target.getBoundingClientRect().top + window.scrollY - 80 : 0, behavior: firstRender ? 'auto' : 'smooth' });
+      const toTarget = smooth => window.scrollTo({ top: target ? target.getBoundingClientRect().top + window.scrollY - 80 : 0, behavior: smooth ? 'smooth' : 'auto' });
+      toTarget(!firstRender);
+      if (target) { // pictures above the section can still be loading: hold the position until the reader scrolls
+        let held = true;
+        const release = () => { held = false; };
+        ['wheel', 'touchstart', 'keydown'].forEach(t => window.addEventListener(t, release, { once: true, passive: true }));
+        [400, 900, 1600].forEach(ms => setTimeout(() => { if (held && route.anchor === target.id) toTarget(false); }, ms));
+      }
       firstRender = false;
       return;
     }
