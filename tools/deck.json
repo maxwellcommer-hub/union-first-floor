@@ -1,0 +1,24 @@
+{
+  "deck": "../Working Files/Union_L1_Final_Deck_V2.ai",
+  "map": { "zones_page": 9, "heat_page": 11, "changed_page": 10 },
+  "spaces": {
+    "01": { "render": 16, "before_after": 17, "elevation": 18, "art": [1634, 1635] },
+    "02": { "render": 19, "before_after": 20, "elevation": 21 },
+    "03": { "render": 22, "before_after": 23, "elevation": 24, "art": [1636, 1637] },
+    "04": { "render": 25, "before_after": 26, "more": 27 },
+    "05": { "render": 28, "before_after": 29, "more": 30 },
+    "06": { "render": 31, "before_after": 32, "more": 33 },
+    "07": { "render": 34, "before_after": 35, "elevation": 36 },
+    "08": { "render": 37, "before_after": 38, "more": 39 },
+    "09": { "render": 40, "before_after": 41, "more": 42 },
+    "10": { "render": 43, "before_after": 44, "more": 45 },
+    "11": { "render": 46, "before_after": 47, "elevation": 48, "art": [1643] }
+  },
+  "images": {
+    "today-1": 2000, "today-2": 2003, "today-3": 2004, "today-4": 2007,
+    "feel-game-room": 1618, "feel-garage-door": 1898, "feel-atrium": 1619, "feel-shade-sails": 1881,
+    "sit-jh600": 1625, "sit-mell": 1624, "sit-jalis": 1623, "sit-reception": 1622, "sit-mod": 1621, "sit-focus": 1620,
+    "mat-plywood": 1626, "mat-mesh": 1627, "mat-perforated": 1628, "mat-fabric": 1629,
+    "mat-dark-wood": 1630, "mat-steel": 1631, "mat-vinyl": 1632
+  }
+}
