@@ -5,6 +5,7 @@
     python3 tools/build_assets.py map        # only the plan layers
     python3 tools/build_assets.py spaces     # only the space sheets and references
     python3 tools/build_assets.py changed    # only the today / our plan pair
+    python3 tools/build_assets.py elevations # only the elevation drawings
 
 Page numbers live in tools/deck.json. If slides move in the deck, change them there.
 Needs: poppler (pdftoppm, pdftocairo, pdfimages), Google Chrome, Pillow, numpy, scipy.
@@ -126,13 +127,41 @@ def build_map():
 
 
 def build_changed():
-    """Today vs our plan: the two panels of the "What changed" sheet."""
+    """Today vs our plan: the drawing from each half of the "What changed" sheet, without the
+    deck's card, its title or its grey ground, so the site's own frame is the only frame."""
     print('what changed')
     p = page_png(CFG['map']['changed_page'], 216)
     W, H = p.size
     for name, fx in (('today', (0.0151, 0.4985)), ('ours', (0.4985, 0.9849))):
-        save_webp(p.crop((int(fx[0] * W), int(0.29 * H), int(fx[1] * W), int(0.98 * H))),
-                  f'{OUT}/changed/{name}.webp', width=1800)
+        panel = p.crop((int(fx[0] * W), int(0.29 * H), int(fx[1] * W), int(0.98 * H)))
+        a = np.asarray(panel.convert('RGB')).astype(int)
+        h, w = a.shape[:2]
+        a = a.copy()
+        bg = a[int(h * .3), int(w * .05)].copy()  # the inner card's ground
+        inner = a[int(h * .11):int(h * .97), int(w * .03):int(w * .97)]  # inside the card's rounded edge
+        # wipe the deck's TODAY / OUR PLAN title: the shapes that end above the plan's top wall
+        ink = np.abs(inner - bg).sum(2) > 40
+        top_wall = int(np.argmax(ink.sum(1) > inner.shape[1] * .25))
+        lab, _ = ndimage.label(ink)
+        for k, sl in enumerate(ndimage.find_objects(lab), 1):
+            if sl[0].stop <= top_wall:
+                inner[lab == k] = bg
+        ink = np.abs(inner - bg).sum(2) > 40
+        ys, xs = np.where(ink)
+        pad = 40
+        crop = inner[max(0, ys.min() - pad):ys.max() + pad, max(0, xs.min() - pad):xs.max() + pad].copy()
+        crop[np.abs(crop - bg).sum(2) < 24] = 255  # the card's ground becomes plain white
+        save_webp(Image.fromarray(crop.astype(np.uint8)), f'{OUT}/changed/{name}.webp', width=1800)
+
+
+def build_elevations():
+    """Each elevation drawing, cut inside the deck's light blue card so its rounded edge never shows."""
+    print('elevations')
+    for sid, s in CFG['spaces'].items():
+        if 'elevation' in s:
+            f = ELEVATION_CARD
+            inset = (f[0] + .011, f[1] + .004, f[2] - .011, f[3] - .004)  # clears the corner radius
+            save_webp(trim(card(s['elevation'], inset, 300)), f'{OUT}/spaces/{sid}/elevation.webp', width=3800, q=84)
 
 
 # ---------------------------------------------------------------- images by object id
@@ -198,14 +227,13 @@ def build_spaces():
         save_webp(extract_object(after_id, [s['before_after']]), f'{d}/after.webp', width=1600, q=88)
         entry = {'before': f'assets/spaces/{sid}/before.webp', 'after': f'assets/spaces/{sid}/after.webp'}
         if 'elevation' in s:
-            save_webp(trim(card(s['elevation'], ELEVATION_CARD, 300)), f'{d}/elevation.webp', width=3800, q=84)
             entry['elevation'] = f'assets/spaces/{sid}/elevation.webp'
         for i, oid in enumerate(s.get('art', [])):
             save_webp(extract_object(oid, allpages), f'{d}/art-{i + 1}.webp', width=2000, q=86)
             entry.setdefault('art', []).append(f'assets/spaces/{sid}/art-{i + 1}.webp')
         if 'more' in s:  # "more views" sheet: keep only cards that hold a real picture
             for i, frac in enumerate(MORE_VIEWS):
-                c = card(s['more'], frac, 216)
+                c = card(s['more'], (frac[0] + .008, frac[1] + .014, frac[2] - .008, frac[3] - .014), 216)  # inside the rounded corners
                 if np.array(c.convert('L')).std() > 12:
                     save_webp(c, f'{d}/view-{i + 1}.webp', width=1800)
                     entry.setdefault('views', []).append(f'assets/spaces/{sid}/view-{i + 1}.webp')
@@ -229,5 +257,6 @@ if __name__ == '__main__':
         if 'map' in what: build_map()
         if 'changed' in what: build_changed()
         if 'spaces' in what: build_spaces()
+        if 'spaces' in what or 'elevations' in what: build_elevations()
     finally:
         shutil.rmtree(TMP, ignore_errors=True)

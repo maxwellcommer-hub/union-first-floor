@@ -627,3 +627,8 @@ a.btn { display: flex; }
   .pin.on:hover { scale: 1.2; }
   .pin.on:hover { scale: 1.2; }
 }
+
+/* the two plans are plain drawings now: one white frame each, nothing inside it */
+.changed figure, .changed figure:last-child { background: #fff; box-shadow: inset 0 0 0 1px var(--rule); border-radius: 18px; }
+.changed figure img { padding: 8px 20px 20px; }
+.elev { background: none; }
