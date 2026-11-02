@@ -33,8 +33,10 @@ Everything on it comes from the deck, `Working Files/Union_L1_Final_Deck_V2.ai`.
    ```
 
    ```bash
-   git add -A && git commit -m "Update from the final deck" && git push
+   python3 tools/stamp.py && git add -A && git commit -m "Update from the final deck" && git push
    ```
+
+   `stamp.py` puts a new version number on the site's files so nobody's browser keeps an old copy.
 
    GitHub Pages republishes about a minute after the push.
 

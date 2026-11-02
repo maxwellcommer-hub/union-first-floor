@@ -11,6 +11,9 @@
   const mq = window.matchMedia('(max-width: 760px)');
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
   const isPhone = () => mq.matches;
+  // every deploy stamps a version on app.js (tools/stamp.py); pass it on so browsers fetch new pictures
+  const V = new URL(document.currentScript.src).searchParams.get('v');
+  const u = src => (V ? `${src}?v=${V}` : src);
 
   // deck page points -> map px
   const P = ([x, y]) => [x * F.scale - F.box[0], y * F.scale - F.box[1]];
@@ -170,7 +173,7 @@
     const st = layerState[name] || (layerState[name] = {});
     const want = big ? 'big' : 'small';
     if (st.level === 'big' || st.level === want) return;
-    const src = `assets/map/${name}${big ? '' : '-sm'}.webp`;
+    const src = u(`assets/map/${name}${big ? '' : '-sm'}.webp`);
     const img = new Image();
     img.decoding = 'async';
     img.onload = () => { layerImgs[name].src = src; st.level = want; };
@@ -223,7 +226,7 @@
   for (const z of D.zones) {
     const el = document.createElement('div');
     el.className = 'zlabel' + (z.hot ? ' hot' : '');
-    el.innerHTML = `<b class="dot zone${z.hot ? ' hot' : ''}">${z.n}</b><span>${esc(z.name)}</span>`;
+    el.innerHTML = `<b class="dot">${z.n}</b><span class="chip">${esc(z.name)}</span>`;
     marks.appendChild(el);
     overlays.push([el, P(z.at)]);
   }
@@ -241,7 +244,7 @@
   overlays.push([ft, P(D.scaleLabel)]);
 
   function placeMarks(t) {
-    for (const [el, [x, y]] of overlays) el.style.transform = `translate3d(${t.x + x * t.s}px,${t.y + y * t.s}px,0)` + (el.classList.contains('entry') ? ' translateX(-50%)' : el.classList.contains('zlabel') ? ' translate(-15px,-15px)' : el.classList.contains('ftlabel') ? ' translate(-100%,-100%)' : '');
+    for (const [el, [x, y]] of overlays) el.style.translate = `${t.x + x * t.s}px ${t.y + y * t.s}px`;
     if (t.s > pz.fitScale() * 1.5) loadLayer(layer, true);
   }
 
@@ -352,7 +355,7 @@
     void body.offsetWidth; // restart the animation
     body.classList.add('enter');
   }
-  const img = (src, alt, cls = '') => `<img src="${src}" alt="${esc(alt)}" loading="lazy" decoding="async" class="${cls}">`;
+  const img = (src, alt, cls = '') => `<img src="${u(src)}" alt="${esc(alt)}" loading="lazy" decoding="async" class="${cls}">`;
   const malikStep = id => D.persona.day.findIndex(d => d.space === id);
 
   function overviewHTML() {
@@ -372,7 +375,7 @@
     </button></li>`).join('')}</ul>
     <div class="sec-row"><h2 class="sec-title">Nine zones</h2><button class="link" data-layer-go="zones">Show on the plan</button></div>
     <ul class="rows">${D.zones.map(z => `<li><button class="row" data-zone="${z.n}">
-      <span class="dot zone${z.hot ? ' hot' : ''}">${z.n}</span><span class="t">${esc(z.name)}</span><span class="s">${SPACES.filter(s => s.zone === z.n).map(s => s.id).join(', ')}</span>
+      <span class="dot">${z.n}</span><span class="t">${esc(z.name)}</span><span class="s">${SPACES.filter(s => s.zone === z.n).map(s => s.id).join(', ')}</span>
     </button></li>`).join('')}</ul>
     <div class="sec-row"><h2 class="sec-title">Loud to quiet</h2><button class="link" data-layer-go="heat">Show on the plan</button></div>
     <ul class="loud">${loudRows()}</ul>
@@ -515,7 +518,7 @@
       lbPz.fit(false);
       lbImg.style.visibility = '';
     };
-    lbImg.src = src;
+    lbImg.src = u(src);
     lbImg.alt = cap;
     $('#lbClose').focus();
   }

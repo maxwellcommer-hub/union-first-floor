@@ -95,48 +95,34 @@ a { color: inherit; }
 .cone.on { fill: var(--crimson); fill-opacity: .42; }
 
 .marks { position: absolute; inset: 0; pointer-events: none; }
-.pin {
-  position: absolute; left: 0; top: 0; pointer-events: auto;
-  width: 34px; height: 34px; margin: -17px 0 0 -17px; padding: 0;
-  border: 2px solid #fff; border-radius: 50%; background: var(--ink); color: #fff;
-  font-size: 12px; font-weight: 700; letter-spacing: .02em;
-  box-shadow: 0 2px 6px rgba(20, 46, 84, .35);
-  display: grid; place-items: center;
-  transition: background .2s, scale .25s var(--ease), opacity .25s;
+/* Marks are placed with the `translate` property (set from JS) so that `scale` on hover
+   grows the circle in place instead of multiplying its position on the plan. */
+.pin, .zlabel, .entry, .ftlabel { position: absolute; left: 0; top: 0; will-change: translate; }
+.pin { pointer-events: auto; margin: -15px 0 0 -15px; transition: background-color .2s, scale .2s var(--ease), opacity .25s; }
+.pin::after { content: ''; position: absolute; inset: -7px; border-radius: 50%; } /* bigger touch target */
+.pin.on { background: var(--crimson); scale: 1.2; z-index: 3; }
+.pin.dim { background: var(--smoke); opacity: .55; }
+.show-zones .pin:not(.on) { opacity: 0; pointer-events: none; }
+
+/* the name next to a circle: the same chip for a space's name and a zone's name */
+.chip, .pin .tip {
+  background: var(--ink); color: #fff; padding: 4px 8px; border-radius: 3px; white-space: nowrap;
+  font-size: 12px; font-weight: 600; letter-spacing: 0; line-height: 1.2;
 }
-.pin::after { /* bigger touch target than the dot */
-  content: ''; position: absolute; inset: -6px; border-radius: 50%;
-}
-.pin.on { background: var(--crimson); scale: 1.22; z-index: 3; }
-.pin.dim { opacity: .45; }
 .pin .tip {
-  position: absolute; left: 50%; bottom: calc(100% + 8px); transform: translateX(-50%);
-  background: var(--ink); color: #fff; padding: 5px 9px; border-radius: 8px; white-space: nowrap;
-  font-size: 12px; font-weight: 600; letter-spacing: 0; opacity: 0; pointer-events: none;
-  transition: opacity .15s;
+  position: absolute; left: 50%; bottom: calc(100% + 8px); translate: -50% 0;
+  opacity: 0; pointer-events: none; transition: opacity .15s;
 }
-.pin.on .tip { background: var(--crimson); }
+.pin.on .tip { background: var(--crimson); opacity: 1; }
+.pin:focus-visible .tip { opacity: 1; }
 @media (hover: none) { .pin:not(.on) .tip { display: none; } }
 
-.zlabel {
-  position: absolute; left: 0; top: 0; pointer-events: none;
-  display: flex; align-items: center; gap: 6px; transform: translate(-13px, -13px);
-  opacity: 0; transition: opacity .35s;
-}
-.zlabel b {
-  width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center;
-  background: #fff; color: var(--blue); border: 2px solid var(--blue); font-size: 12px; font-weight: 700;
-}
-.zlabel.hot b { color: var(--crimson); border-color: var(--crimson); }
-.zlabel span {
-  background: rgba(255, 255, 255, .92); color: var(--ink); padding: 2px 7px; border-radius: 6px;
-  font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; white-space: nowrap;
-}
+.zlabel { pointer-events: none; display: flex; align-items: center; gap: 6px; margin: -15px 0 0 -15px;
+  opacity: 0; transition: opacity .35s; }
 .show-zones .zlabel { opacity: 1; }
-.show-zones .pin:not(.on) { opacity: .0; pointer-events: none; }
 
 .entry {
-  position: absolute; left: 0; top: 0; pointer-events: none; transform: translate(-50%, 0);
+  pointer-events: none; transform: translateX(-50%);
   display: flex; flex-direction: column; align-items: center; gap: 2px; color: var(--crimson);
 }
 .entry span { font-size: 10px; font-weight: 700; letter-spacing: .2em; text-transform: uppercase;
@@ -171,7 +157,7 @@ a { color: inherit; }
 }
 .zoom button + button { border-top: 1px solid var(--rule); }
 .ftlabel {
-  position: absolute; left: 0; top: 0; pointer-events: none; padding-bottom: 2px;
+  pointer-events: none; padding-bottom: 2px; transform: translate(-100%, -100%);
   font-size: 10px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: var(--ink); white-space: nowrap;
 }
 
@@ -460,7 +446,6 @@ a { color: inherit; }
   .intro .lede { font-size: 15px; }
   .space-head h2, .space-head .big { font-size: 44px; }
   .problem h3 { font-size: 30px; }
-  .pin { width: 32px; height: 32px; margin: -16px 0 0 -16px; }
 
   .story { padding: calc(var(--bar-h) + 16px) 12px 48px; }
   .sheetblock { padding: 24px 20px; border-radius: 22px; }
@@ -524,9 +509,6 @@ a.btn { display: flex; }
 .zoom { border: 1px solid var(--rule-strong); border-radius: 4px; }
 .heat-key { border-radius: 4px; border: 1px solid var(--rule-strong); }
 .heat-key i { border-radius: 0; }
-.pin { box-shadow: none; }
-.pin .tip { border-radius: 3px; }
-.zlabel span { border-radius: 2px; }
 
 .sheet { background: #fff; }
 .intro .rooms { font-size: 16px; font-weight: 700; margin-top: 10px; }
@@ -606,24 +588,13 @@ a.btn { display: flex; }
   font-family: var(--font); font-size: 11px; font-weight: 700; line-height: 1; letter-spacing: 0;
   font-variant-numeric: tabular-nums; font-variation-settings: 'wdth' 100;
 }
-.dot.zone { background: var(--blue); }
-.dot.hot { background: var(--crimson); }
-.pin.dot, .zlabel .dot {
-  width: 30px; height: 30px; margin: 0; font-size: 12px; border: 2px solid #fff;
-}
-.pin.dot { margin: -15px 0 0 -15px; }
-.zlabel .dot { color: #fff; }
-.pin.on { background: var(--crimson); }
-.pin.dim { background: var(--smoke); opacity: .55; }
+.marks .dot { width: 30px; height: 30px; font-size: 12px; border: 2px solid #fff; }
 .row .dot { justify-self: start; }
-.pin:focus-visible .tip, .pin.on .tip { opacity: 1; }
 .row.hl .t { color: var(--blue); }
 .day .dot { justify-self: end; }
-@media (max-width: 760px) { .pin.dot { width: 30px; height: 30px; margin: -15px 0 0 -15px; } }
 
 /* ================================================================ motion
    Hover is for a mouse only, so a tap on a phone never leaves something stuck lit. */
-.pin { transition: background-color .2s, scale .2s var(--ease), opacity .25s; }
 .row .t, .pager b, .pays h3, .day span, .link, .back, .tabs a { transition: color .15s; }
 .btn { transition: background-color .15s, box-shadow .15s, color .15s; }
 .layers button { transition: background-color .2s, color .2s; }
@@ -633,8 +604,6 @@ a.btn { display: flex; }
 @keyframes lb-in { from { opacity: 0; } to { opacity: 1; } }
 @media (hover: hover) and (pointer: fine) {
   .tabs a:hover { background: rgba(255, 255, 255, .14); }
-  .pin:hover { scale: 1.12; }
-  .pin:hover .tip, .pin:focus-visible .tip, .pin.on .tip { opacity: 1; }
   .zoom button:hover { background: var(--ground); }
   .btn.primary:hover { background: #005A9C; }
   .btn.ghost:hover { background: #fff; box-shadow: inset 0 0 0 1px var(--ink); }
@@ -654,9 +623,8 @@ a.btn { display: flex; }
   .pays button:hover h3 { color: var(--blue); }
   .day button:hover .go { text-decoration: none; }
   .day button:hover span:nth-child(2) { color: var(--blue); }
-  .pin:hover { scale: 1.12; }
-  .pin.on:hover { scale: 1.22; }
   .pin:hover .tip { opacity: 1; }
+  .pin:hover { scale: 1.12; }
+  .pin.on:hover { scale: 1.2; }
+  .pin.on:hover { scale: 1.2; }
 }
-/* zone 1's circle sits on its own crimson fill: a white ring with a crimson rim keeps it readable */
-.zlabel .dot.hot { box-shadow: 0 0 0 1.5px var(--crimson); }
