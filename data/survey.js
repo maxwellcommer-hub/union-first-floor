@@ -387,7 +387,7 @@ window.UNION_SURVEY = {
   {
    "key": "want",
    "q": "What would make you want to stay? Pick up to 5.",
-   "how": "Pick up to 5"
+   "how": ""
   },
   {
    "key": "pain",

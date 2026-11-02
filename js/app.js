@@ -352,30 +352,28 @@
   function overviewHTML() {
     const m = D.meta;
     return `<div class="intro">
-      <p class="label blue">${esc(m.status)} · ${esc(m.team)}</p>
       <h1 class="display">${esc(m.title)}</h1>
       <p class="rooms">${esc(m.rooms)}</p>
       <div class="ctas" data-peek-end>
-        <button class="btn primary" data-go="#/space/01">Walk the floor <small>${SPACES.length} spaces</small></button>
-        <button class="btn ghost" data-go="#/space/${D.persona.day[0].space}?malik=0">Follow Malik’s day <small>11 AM to 8 PM</small></button>
+        <button class="btn primary" data-go="#/space/01">Walk all ${SPACES.length} spaces</button>
+        <button class="btn ghost" data-go="#/space/${D.persona.day[0].space}?malik=0">Follow Malik’s day</button>
       </div>
-      <p class="lede">A walk through the first floor. Tap a number on the plan, or walk all ${SPACES.length} spaces in order, each with a before and after.</p>
+      <p class="lede">Each number on the plan is one space, shown as it is today and as we plan it.</p>
     </div>
-    <div class="sec-head"><h2 class="display">The spaces</h2><span class="label muted">In walking order</span></div>
+    <h2 class="sec-title">Spaces</h2>
     <ul class="rows">${SPACES.map(s => `<li><button class="row" data-go="#/space/${s.id}" data-hl="${s.id}">
-      <span class="num">${s.id}</span><span><span class="t">${esc(s.title)}</span><span class="s">${esc(s.zoneLabel)}</span></span><span class="arr" aria-hidden="true">→</span>
+      <span class="num">${s.id}</span><span class="t">${esc(s.title)}</span><span class="s">${esc(s.zoneLabel.replace(/^Zone \d+ · /, ''))}</span>
     </button></li>`).join('')}</ul>
-    <div class="sec-head"><h2 class="display">Nine zones</h2><button class="back" data-layer-go="zones">Show on plan →</button></div>
+    <div class="sec-row"><h2 class="sec-title">Nine zones</h2><button class="link" data-layer-go="zones">Show on the plan</button></div>
     <ul class="rows">${D.zones.map(z => `<li><button class="row" data-zone="${z.n}">
-      <span class="z${z.hot ? ' hot' : ''}">${z.n}</span><span><span class="t">${esc(z.name)}</span>${z.note ? `<span class="s">${esc(z.note)}</span>` : ''}</span>
-      <span class="arr" aria-hidden="true">${SPACES.filter(s => s.zone === z.n).map(s => s.id).join(' ')}</span>
+      <span class="z${z.hot ? ' hot' : ''}">${z.n}</span><span class="t">${esc(z.name)}</span><span class="s">${SPACES.filter(s => s.zone === z.n).map(s => s.id).join(', ')}</span>
     </button></li>`).join('')}</ul>
-    <div class="sec-head"><h2 class="display">How loud</h2><button class="back" data-layer-go="heat">Show on plan →</button></div>
-    <div class="card"><ul class="loud">${loudRows()}</ul></div>
-    <div class="ctas"><button class="btn ghost" data-go="#/story">How we got here <small>Survey, persona, intent</small></button></div>`;
+    <div class="sec-row"><h2 class="sec-title">Loud to quiet</h2><button class="link" data-layer-go="heat">Show on the plan</button></div>
+    <ul class="loud">${loudRows()}</ul>
+    <p class="more"><a href="#/story">Survey, persona and design intent</a></p>`;
   }
   const LOUD_C = ['#D7191C', '#F6C779', '#2F6DAE'];
-  const loudRows = () => D.loudness.map(([k, v], i) => `<li><i style="background:${LOUD_C[i]}"></i><strong class="label">${esc(k)}</strong><p>${esc(v)}</p></li>`).join('');
+  const loudRows = () => D.loudness.map(([k, v], i) => `<li><i style="background:${LOUD_C[i]}"></i><strong>${esc(k)}</strong><p>${esc(v)}</p></li>`).join('');
 
   function spaceHTML(id, malik) {
     const s = byId(id), i = idx(id), a = A.spaces[id] || {};
@@ -392,48 +390,42 @@
 
     return `
     <div class="topnav">
-      <button class="back" data-go="#/">← ${touring ? 'End Malik’s day' : 'All spaces'}</button>
+      <button class="back" data-go="#/">${touring ? 'End Malik’s day' : 'All spaces'}</button>
       <div class="stepper">
         <button class="icon-btn" aria-label="Previous" ${prevHref ? `data-go="${prevHref}"` : 'disabled'}>←</button>
         <span>${counter}</span>
         <button class="icon-btn" aria-label="Next" ${nextHref ? `data-go="${nextHref}"` : 'disabled'}>→</button>
       </div>
     </div>
-    ${touring ? `<div class="tour"><span class="time">${esc(step.time)}</span><span class="label">Malik’s day</span><p>${esc(step.what)}</p></div>` : ''}
-    <div class="space-head" ${touring ? '' : ''}>
+    ${touring ? `<p class="tour"><b>${esc(step.time)}</b> ${esc(step.what)}</p>` : ''}
+    <div class="space-head">
       <div><p class="label blue">${esc(s.zoneLabel)}</p><h2 class="display" data-peek-end>${esc(s.title)}</h2></div>
       <span class="big" aria-hidden="true">${s.id}</span>
     </div>
-    <div class="stack" style="margin-top:18px">
-      ${a.after ? `<div>
-        <div class="compare" style="--cut:50%" data-compare>
-          ${img(a.before, `${s.title}, before`, 'before')}
-          ${img(a.after, `${s.title}, after`, 'after')}
-          <span class="tag b">Before</span><span class="tag a">After</span>
-          <div class="handle"><b>◀ ▶</b></div>
-          <input type="range" min="0" max="100" value="50" aria-label="Before and after: drag to compare" style="position:absolute;opacity:0;pointer-events:none;width:1px;height:1px">
-          <button class="expand" data-lb="${a.after}" data-cap="${esc(s.id + ' · ' + s.title)}" aria-label="Open the render full screen">
-            <svg width="18" height="18" viewBox="0 0 20 20" aria-hidden="true"><path d="M3 8V3h5M12 3h5v5M17 12v5h-5M8 17H3v-5" fill="none" stroke="#142E54" stroke-width="2"/></svg></button>
-        </div>
-        <p class="hint">Drag across the picture to compare today with the plan.</p>
-      </div>` : ''}
-      <div class="problem"><p class="label red">The problem</p><h3 class="display">${esc(s.problem)}</h3></div>
-      ${ms >= 0 && !touring ? `<a class="chip-card malik" href="#/space/${id}?malik=${ms}"><span class="label red">Malik, ${esc(D.persona.day[ms].time)}</span><p>${esc(D.persona.day[ms].what)}</p></a>` : ''}
-      ${rev ? `<div class="chip-card money"><span class="label blue">Who pays for it</span><strong>${esc(rev[0])}</strong><p>${esc(rev[1])}</p></div>` : ''}
-      ${a.views ? `<div><p class="label muted" style="margin-bottom:8px">More views</p><div class="views">${a.views.map((v, k) => `<button data-lb="${v}" data-cap="${esc(s.title)} · view ${k + 1}">${img(v, `${s.title}, view ${k + 1}`)}</button>`).join('')}</div></div>` : ''}
-      ${a.art ? `<div><p class="label muted" style="margin-bottom:8px">The graphic</p><div class="art">${a.art.map((v, k) => `<button data-lb="${v}" data-cap="${esc(s.title)} · graphic">${img(v, `${s.title} graphic ${k + 1}`)}</button>`).join('')}</div></div>` : ''}
-      ${a.elevation ? `<div class="elev">
-        <p class="label blue">Elevation · scale 1/2″ = 1′-0″</p>
-        <button data-lb="${a.elevation}" data-cap="${esc(s.title)} · elevation" aria-label="Open the elevation full screen">${img(a.elevation, `${s.title} elevation drawing`)}</button>
-        <p class="hint">Tap the drawing to zoom in.</p>
-      </div>` : ''}
-      ${s.build ? `<div class="card"><p class="label muted">How it’s built</p>${s.size ? `<p class="size" style="margin-top:8px">${esc(s.size)}</p>` : ''}
-        <ol class="build" style="margin-top:12px">${s.build.map(([t, d]) => `<li><strong>${esc(t)}</strong><p>${esc(d)}</p></li>`).join('')}</ol>
-        ${s.notes ? `<p class="notes">${esc(s.notes)}</p>` : ''}</div>` : ''}
-    </div>
+    ${a.after ? `<div class="compare" style="--cut:50%" data-compare>
+        ${img(a.before, `${s.title}, before`, 'before')}
+        ${img(a.after, `${s.title}, after`, 'after')}
+        <span class="tag b">Before</span><span class="tag a">After</span>
+        <div class="handle"><b></b></div>
+        <input type="range" min="0" max="100" value="50" aria-label="Before and after" style="position:absolute;opacity:0;pointer-events:none;width:1px;height:1px">
+        <button class="expand" data-lb="${a.after}" data-cap="${esc(s.id + ' · ' + s.title)}" aria-label="Open the render full screen">
+          <svg width="16" height="16" viewBox="0 0 20 20" aria-hidden="true"><path d="M3 8V3h5M12 3h5v5M17 12v5h-5M8 17H3v-5" fill="none" stroke="#142E54" stroke-width="2"/></svg></button>
+      </div>
+      <p class="hint">Drag to compare.</p>` : ''}
+    <section class="part"><p class="label red">The problem</p><h3 class="display problem">${esc(s.problem)}</h3></section>
+    ${ms >= 0 && !touring ? `<section class="part"><p class="label">Malik, ${esc(D.persona.day[ms].time)}</p><p>${esc(D.persona.day[ms].what)} <a href="#/space/${id}?malik=${ms}">Follow his day</a></p></section>` : ''}
+    ${rev ? `<section class="part"><p class="label">Who pays for it</p><p><strong>${esc(rev[0])}.</strong> ${esc(rev[1])}</p></section>` : ''}
+    ${a.views ? `<section class="part"><p class="label">More views</p><div class="views">${a.views.map((v, k) => `<button data-lb="${v}" data-cap="${esc(s.title)} · view ${k + 1}">${img(v, `${s.title}, view ${k + 1}`)}</button>`).join('')}</div></section>` : ''}
+    ${a.art ? `<section class="part"><p class="label">The graphic</p><div class="art">${a.art.map((v, k) => `<button data-lb="${v}" data-cap="${esc(s.title)} · graphic">${img(v, `${s.title} graphic ${k + 1}`)}</button>`).join('')}</div></section>` : ''}
+    ${a.elevation ? `<section class="part"><p class="label">Elevation, 1/2″ = 1′-0″</p>
+      <button class="elev" data-lb="${a.elevation}" data-cap="${esc(s.title)} · elevation" aria-label="Open the elevation full screen">${img(a.elevation, `${s.title} elevation drawing`)}</button>
+      <p class="hint">Tap to zoom.</p></section>` : ''}
+    ${s.build ? `<section class="part"><p class="label">How it’s built</p>${s.size ? `<p class="size">${esc(s.size)}</p>` : ''}
+      <ol class="build">${s.build.map(([t, d]) => `<li><strong>${esc(t)}</strong><p>${esc(d)}</p></li>`).join('')}</ol>
+      ${s.notes ? `<p class="notes">${esc(s.notes)}</p>` : ''}</section>` : ''}
     <div class="pager">
-      <button ${prevHref ? `data-go="${prevHref}"` : 'disabled'}><span class="label muted">Previous</span><b>${esc(prevT || '')}</b></button>
-      <button class="next" ${nextHref ? `data-go="${nextHref}"` : 'data-go="#/"'}><span class="label">${nextHref ? 'Next' : 'Done'}</span><b>${esc(nextT || 'Back to the plan')}</b></button>
+      <button ${prevHref ? `data-go="${prevHref}"` : 'disabled'}><span>Previous</span><b>${esc(prevT || '')}</b></button>
+      <button class="next" ${nextHref ? `data-go="${nextHref}"` : 'data-go="#/"'}><span>${nextHref ? 'Next' : 'Done'}</span><b>${esc(nextT || 'Back to the plan')}</b></button>
     </div>`;
   }
 
@@ -539,13 +531,13 @@
       ${head(no(), `${m.place} · ${m.status}`)}
       <h2 class="display">A walk through<br>the first floor.</h2>
       <p class="intent" style="margin-top:28px">${esc(D.intent)}</p>
-      <div class="cta-row"><button class="btn ghost" data-go="#/space/01">Walk the floor <small>${SPACES.length} spaces</small></button>
-      <button class="btn ghost" data-go="#/">Open the plan <small>Map</small></button></div>
+      <div class="cta-row"><button class="btn ghost" data-go="#/space/01">Walk all ${SPACES.length} spaces</button>
+      <button class="btn ghost" data-go="#/">Open the plan</button></div>
     </section>
 
     <section class="sheetblock" id="today">
-      ${head(no(), 'The floor today')}
-      <h2 class="display">Where it starts.</h2>
+      ${head(no(), m.place)}
+      <h2 class="display">The floor today</h2>
       <div class="photos" style="margin-top:28px">${[1, 2, 3, 4].map(k => `<button data-lb="${ref('today-' + k)}" data-cap="The floor today">${img(ref('today-' + k), 'The first floor today, photo ' + k)}</button>`).join('')}</div>
     </section>
 
@@ -559,7 +551,7 @@
         </div>
       </div>
       <div class="stats">${sv.stats.map(([v, t]) => `<div>${v}%<p>${esc(t)}</p></div>`).join('')}</div>
-      <div class="cta-row"><button class="btn primary" data-go="#/survey">See every answer <small>All ${sv.responses} responses</small></button></div>
+      <div class="cta-row"><button class="btn primary" data-go="#/survey">All survey answers</button></div>
     </section>
 
     <section class="sheetblock" id="malik">
@@ -569,10 +561,10 @@
           <p class="quote">“${esc(pe.quote)}”</p>
           <p class="label muted" style="margin-top:28px">What he needs</p>
           <ul class="needs" style="margin-top:8px">${pe.needs.map(t => `<li>${esc(t)}</li>`).join('')}</ul></div>
-        <div><p class="label muted">A typical day, on the plan</p>
+        <div><p class="label muted">A typical day</p>
           <ul class="day" style="margin-top:8px">${pe.day.map((d, k) => `<li><button data-go="#/space/${d.space}?malik=${k}">
-            <span class="time">${esc(d.time)}</span><span>${esc(d.what)}</span><span class="go">${esc(byId(d.space).title)} →</span></button></li>`).join('')}</ul>
-          <div class="cta-row"><button class="btn primary" data-go="#/space/${pe.day[0].space}?malik=0">Follow his day on the map <small>4 stops</small></button></div>
+            <span class="time">${esc(d.time)}</span><span>${esc(d.what)}</span><span class="go">${esc(d.space)}</span></button></li>`).join('')}</ul>
+          <div class="cta-row"><button class="btn primary" data-go="#/space/${pe.day[0].space}?malik=0">Follow his day on the plan</button></div>
         </div>
       </div>
     </section>
@@ -590,14 +582,14 @@
         <figure><figcaption><p class="label muted">Today</p></figcaption><button data-lb="assets/changed/today.webp" data-cap="Today">${img('assets/changed/today.webp', 'Level 1 plan today')}</button></figure>
         <figure><figcaption><p class="label blue">Our plan · nine zones</p></figcaption><button data-lb="assets/changed/ours.webp" data-cap="Our plan">${img('assets/changed/ours.webp', 'Level 1 plan with the nine zones')}</button></figure>
       </div>
-      <div class="cta-row"><button class="btn ghost" data-go="#/?layer=zones">Explore the zones <small>Map</small></button></div>
+      <div class="cta-row"><button class="btn ghost" data-go="#/?layer=zones">Show the zones on the plan</button></div>
     </section>
 
     <section class="sheetblock" id="loud">
       ${head(no(), 'Design')}
       <div class="cols"><h2 class="display">Loud<br>to quiet</h2>
         <div><ul class="loud">${loudRows()}</ul>
-        <div class="cta-row"><button class="btn primary" data-go="#/?layer=heat">See it on the plan <small>Map</small></button></div></div></div>
+        <div class="cta-row"><button class="btn primary" data-go="#/?layer=heat">Show it on the plan</button></div></div></div>
     </section>
 
     <section class="sheetblock" id="feel">
@@ -624,10 +616,10 @@
 
     <section class="sheetblock" id="pays">
       ${head(no(), m.place)}
-      <div class="cols" style="--n:1"><h2 class="display">Who pays<br>for it.</h2><p style="font-size:18px;margin:0">Three new revenue streams, each built into a space on the walk.</p></div>
+      <div class="cols" style="--n:1"><h2 class="display">Who pays<br>for it.</h2><p style="font-size:18px;margin:0">Three new revenue streams, each built into one of the spaces.</p></div>
       <div class="pays" style="margin-top:28px">${D.revenue.map(([t, d, sid], k) => `<button data-go="#/space/${sid}">
         ${(A.spaces[sid] || {}).after ? img(A.spaces[sid].after, byId(sid).title) : ''}
-        <div class="body"><span class="n">${pad2(k + 1)}</span><h3 class="display">${esc(t)}</h3><p>${esc(d)}</p><p class="go">${esc(sid + ' · ' + byId(sid).title)} on the map →</p></div></button>`).join('')}</div>
+        <div class="body"><span class="n">${pad2(k + 1)}</span><h3 class="display">${esc(t)}</h3><p>${esc(d)}</p><p class="go">Space ${esc(sid)}, ${esc(byId(sid).title)}</p></div></button>`).join('')}</div>
     </section>
 
     <footer class="foot"><span>${esc(m.place)} · ${esc(m.rooms)}</span><span>${esc(m.team)} · ${esc(m.date)} · ${esc(m.courses)}</span></footer>`;
@@ -646,18 +638,18 @@
       }
       return `<ul class="bars tally">${rows.map(([t, v]) => `<li><div><span>${esc(t)}</span><strong>${pct(v)}% <small>${v}</small></strong></div><i><b style="width:${pct(v)}%"></b></i></li>`).join('')}</ul>`;
     };
-    const card = q => `<article class="qcard"><p class="label muted">${esc(q.how)}</p><h3>${esc(q.q)}</h3>${block(q)}</article>`;
-    const said = (title, list) => `<article class="qcard wide"><p class="label red">In their words</p><h3>${esc(title)}</h3>
+    const card = q => `<article class="qcard">${q.how ? `<p class="label muted">${esc(q.how)}</p>` : ''}<h3>${esc(q.q)}</h3>${block(q)}</article>`;
+    const said = (title, list) => `<article class="qcard wide"><p class="label muted">Written answers</p><h3>${esc(title)}</h3>
       <ul class="said">${list.map(t => `<li>“${esc(t)}”</li>`).join('')}</ul></article>`;
     const [first, ...rest] = S.questions;
     return `
     <section class="sheetblock">
-      <div class="sb-head"><p class="label muted">Student survey · ${n} responses · ${esc(S.date)}</p><span class="sb-no">Raw</span></div>
-      <h2 class="display">Every answer.</h2>
-      <p class="survey-note">${esc(S.source)} Percentages are the share of all ${n} people who answered; questions that allow more than one pick add up to more than 100%.</p>
+      <p class="label muted">${esc(D.meta.place)}</p>
+      <h2 class="display" style="margin-top:24px">Student survey</h2>
+      <p class="survey-note">${n} people answered an anonymous Google Form we shared on Instagram. Counts are as of ${esc(S.date)}. It is a small sample. Percentages are out of all ${n}, so questions that allow more than one pick add up to more than 100%.</p>
       <div class="cta-row">
-        <a class="btn primary" href="assets/survey/KU-Union-Level-1-Survey.csv" download>Download the data <small>CSV</small></a>
-        <a class="btn ghost" href="assets/survey/KU-Union-Level-1-Survey-Results.pdf" target="_blank" rel="noopener">The printed report <small>PDF · 4 pages</small></a>
+        <a class="btn primary" href="assets/survey/KU-Union-Level-1-Survey.csv" download>Download the data (CSV)</a>
+        <a class="btn ghost" href="assets/survey/KU-Union-Level-1-Survey-Results.pdf" target="_blank" rel="noopener">Printed report (PDF)</a>
       </div>
     </section>
     <div class="qgrid">
@@ -667,7 +659,7 @@
       ${rest.slice(1).map(card).join('')}
       ${said(S.ideaQ, S.ideas)}
     </div>
-    <div class="cta-row" style="justify-content:center;margin:8px 0 24px"><button class="btn ghost" data-go="#/story/heard">Back to what we heard <small>Our thinking</small></button></div>
+    <div class="cta-row" style="justify-content:center;margin:8px 0 24px"><button class="btn ghost" data-go="#/story/heard">Back to the survey summary</button></div>
     <footer class="foot"><span>${esc(D.meta.place)} · ${esc(D.meta.rooms)}</span><span>${esc(D.meta.team)} · ${esc(D.meta.courses)}</span></footer>`;
   }
 
