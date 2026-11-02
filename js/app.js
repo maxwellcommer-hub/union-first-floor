@@ -307,42 +307,79 @@
       if (route.space) focusSpace(route.space); else pz.fit();
     }
   }
-  // grip: tap to cycle, drag to choose
+  // Phone bottom sheet. Drag it from anywhere: the handle, the title, the buttons. Below full height
+  // the sheet moves with the finger; at full height the content scrolls, and pulling down from the
+  // top of the content takes the sheet down again. A quick flick goes to the next stop.
   (() => {
-    const grip = $('#grip');
-    let y0 = null, startT = 0, moved = false;
-    const base = () => {
+    const stop = name => {
       const h = sheet.offsetHeight;
-      return sheetState === 'full' ? 0 : sheetState === 'half' ? h * 0.48 : h - peekPx();
+      return name === 'full' ? 0 : name === 'half' ? h * 0.48 : h - peekPx() - envBottom();
     };
-    grip.addEventListener('pointerdown', e => { y0 = e.clientY; startT = base(); moved = false; grip.setPointerCapture(e.pointerId); });
-    grip.addEventListener('pointermove', e => {
-      if (y0 === null) return;
-      const dy = e.clientY - y0;
-      if (Math.abs(dy) > 4) moved = true;
-      if (!moved) return;
-      sheet.classList.add('dragging');
-      sheet.style.transform = `translateY(${Math.max(0, startT + dy)}px)`;
-    });
+    const envBottom = () => parseFloat(getComputedStyle(sheet).getPropertyValue('--sab')) || 0;
+    let t = null;          // the touch being tracked
+    let justDragged = false;
+    const at = y => {      // follow the finger, with resistance past the ends
+      const lo = 0, hi = stop('peek');
+      if (y < lo) y = lo - Math.sqrt(lo - y) * 4;
+      if (y > hi) y = hi + Math.sqrt(y - hi) * 4;
+      sheet.style.transform = `translateY(${y}px)`;
+    };
+    sheet.addEventListener('touchstart', e => {
+      if (!isPhone() || e.touches.length > 1) { t = null; return; }
+      const p = e.touches[0];
+      t = { x0: p.clientX, y0: p.clientY, start: stop(sheetState), mode: null, samples: [[p.clientY, e.timeStamp]] };
+    }, { passive: true });
+    sheet.addEventListener('touchmove', e => {
+      if (!t) return;
+      const p = e.touches[0], dx = p.clientX - t.x0, dy = p.clientY - t.y0;
+      if (!t.mode) {
+        if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+        if (Math.abs(dx) > Math.abs(dy) || e.target.closest('[data-compare]') && Math.abs(dx) * 1.5 > Math.abs(dy)) { t = null; return; } // sideways: the before/after slider
+        const atTop = scroller.scrollTop <= 0;
+        if (sheetState === 'full' && !(atTop && dy > 0)) { t = null; return; } // let the content scroll
+        t.mode = 'drag';
+        t.y0 = p.clientY; // start from here so the sheet doesn't jump by the 8px dead zone
+        sheet.classList.add('dragging');
+      }
+      e.preventDefault();
+      at(t.start + (p.clientY - t.y0));
+      t.samples.push([p.clientY, e.timeStamp]);
+      if (t.samples.length > 5) t.samples.shift();
+    }, { passive: false });
     const end = e => {
-      if (y0 === null) return;
-      const dy = e.clientY - y0;
-      y0 = null;
+      if (!t) return;
+      const drag = t.mode === 'drag', s = t.samples;
+      t.y = s[s.length - 1][0];
+      const pos = t.start + (t.y - t.y0);
+      const dt = (s[s.length - 1][1] - s[0][1]) || 1, v = (s[s.length - 1][0] - s[0][0]) / dt; // px per ms
+      t = null;
+      if (!drag) return;
+      justDragged = true;
+      setTimeout(() => { justDragged = false; }, 50);
       sheet.classList.remove('dragging');
       sheet.style.transform = '';
-      if (!moved) { setSheet(sheetState === 'peek' ? 'half' : sheetState === 'half' ? 'full' : 'peek'); return; }
-      const h = sheet.offsetHeight, pos = startT + dy;
-      const stops = [['full', 0], ['half', h * 0.48], ['peek', h - peekPx()]];
-      stops.sort((a, b) => Math.abs(a[1] - pos) - Math.abs(b[1] - pos));
-      setSheet(stops[0][0]);
+      const order = ['full', 'half', 'peek'];
+      let next;
+      if (Math.abs(v) > 0.45) { // a flick: one stop in its direction, from wherever the finger let go
+        const i = order.indexOf(sheetState);
+        next = order[Math.max(0, Math.min(2, i + (v > 0 ? 1 : -1)))];
+        if (pos < stop('half') && v < 0) next = 'full';
+        if (pos > stop('half') && v > 0) next = 'peek';
+      } else {
+        next = order.reduce((a, b) => Math.abs(stop(b) - pos) < Math.abs(stop(a) - pos) ? b : a);
+      }
+      setSheet(next, next !== sheetState);
     };
-    grip.addEventListener('pointerup', end);
-    grip.addEventListener('pointercancel', end);
+    sheet.addEventListener('touchend', end);
+    sheet.addEventListener('touchcancel', end);
+    // a drag that ends on a button is not a tap on it
+    sheet.addEventListener('click', e => { if (justDragged) { e.stopPropagation(); e.preventDefault(); } }, true);
+    // the handle also works as a button: tap to step up, and back down from full
+    $('#grip').addEventListener('click', () => {
+      if (justDragged) return;
+      setSheet(sheetState === 'peek' ? 'half' : sheetState === 'half' ? 'full' : 'peek');
+    });
   })();
-  // on a phone, reading on past the half sheet opens it the rest of the way
-  scroller.addEventListener('scroll', () => {
-    if (isPhone() && sheetState === 'half' && scroller.scrollTop > 12) setSheet('full', false);
-  }, { passive: true });
   // on a phone, tapping the collapsed sheet opens it
   sheet.addEventListener('click', e => {
     if (isPhone() && sheetState === 'peek' && !e.target.closest('button, a, input')) setSheet('half');

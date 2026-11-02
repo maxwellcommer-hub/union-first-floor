@@ -632,3 +632,14 @@ a.btn { display: flex; }
 .changed figure, .changed figure:last-child { background: #fff; box-shadow: inset 0 0 0 1px var(--rule); border-radius: 18px; }
 .changed figure img { padding: 8px 20px 20px; }
 .elev { background: none; }
+
+/* phone sheet: the whole sheet takes vertical drags until it is open all the way */
+@media (max-width: 760px) {
+  .sheet { --sab: env(safe-area-inset-bottom); touch-action: pan-x; overscroll-behavior: contain;
+    transition: transform .38s cubic-bezier(.2, .9, .25, 1); }
+  .sheet.full { touch-action: auto; }
+  .sheet.dragging { transition: none; }
+  .grip { height: 30px; cursor: grab; }
+  .sheet-scroll { overscroll-behavior-y: contain; }
+  .compare { touch-action: pan-y; }
+}
