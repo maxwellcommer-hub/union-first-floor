@@ -102,7 +102,7 @@ a { color: inherit; }
 .pin::after { content: ''; position: absolute; inset: -7px; border-radius: 50%; } /* bigger touch target */
 .pin.on { background: var(--crimson); scale: 1.2; z-index: 3; }
 .pin.dim { background: var(--smoke); opacity: .55; }
-.show-zones .pin:not(.on) { opacity: 0; pointer-events: none; }
+.show-zones .pin:not(.on), .show-heat .pin:not(.on) { opacity: 0; pointer-events: none; }
 
 /* the name next to a circle: the same chip for a space's name and a zone's name */
 .chip, .pin .tip {
