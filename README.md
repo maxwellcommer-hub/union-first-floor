@@ -46,6 +46,9 @@ Needs poppler (`brew install poppler`), Google Chrome, and Python with Pillow, n
 
 - The plan layers are the deck's own "Nine zones" and "Loud to quiet" sheets with the type and
   number markers stripped out, so the site can draw its own buttons on top.
+- The map is painted into one canvas the size of the window. Each layer has a light picture
+  (`assets/map/<layer>-sm.webp`) for the whole floor, and zoomed in, the sharp version loads as
+  600 px tiles (`assets/map/tiles/<layer>/`), only the ones on screen. The build cuts the tiles.
 - View positions (`cam` and `look` in `content.js`) are in deck points on the Nine zones sheet.
   They were read off the red view cones in each space's key plan. The Bar slide has no cone,
   so its position was placed by hand at zone 7.
