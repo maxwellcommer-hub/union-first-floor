@@ -256,7 +256,7 @@
       const im = new Image();
       im.decoding = 'async';
       if (name === 'plan') im.fetchPriority = 'high';
-      im.onload = () => bitmap(im).then(pic => { L[name].lo = pic; paint(); done(); });
+      im.onload = () => bitmap(im).then(pic => { L[name].lo = pic; warm(pic); paint(); done(); });
       im.onerror = () => done();
       im.src = u(`assets/map/${name}-sm.webp`);
     }));
@@ -266,6 +266,13 @@
     ? createImageBitmap(im).catch(() => (im.decode ? im.decode().then(() => im, () => im) : im))
     : (im.decode ? im.decode().then(() => im, () => im) : Promise.resolve(im));
   const free = pic => { if (pic && pic.close) pic.close(); };
+  // The first time a picture is drawn it has to be sent to the graphics card, which can take a frame
+  // or two. Do that while nothing is moving, with an invisible one-pixel draw, so a layer's first
+  // fade-in is as smooth as every later one.
+  function warm(pic) {
+    const go = () => { ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 0.004; ctx.drawImage(pic, 0, 0, 1, 1, 0, 0, 1, 1); ctx.restore(); paint(); };
+    (window.requestIdleCallback || (f => setTimeout(f, 200)))(go);
+  }
 
   const lowMemory = (navigator.deviceMemory || 8) <= 2;
   // zoomed in past the point where the light picture runs out of pixels, tiles take over
