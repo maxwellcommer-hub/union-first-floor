@@ -176,7 +176,13 @@
   const ratio = () => Math.min(devicePixelRatio || 1, 2);
   const L = { plan: { a: 0, hiA: 0 }, zones: { a: 0, hiA: 0 }, heat: { a: 0, hiA: 0 } };
   let order = ['zones', 'heat', 'plan']; // painted bottom to top
-  let painting = 0;
+  let painting = 0, moving = false, still = 0;
+  // anything that moves the map marks it moving; 140 ms after the last move it repaints at full quality
+  function moved() {
+    moving = true;
+    clearTimeout(still);
+    still = setTimeout(() => { moving = false; paint(); }, 140);
+  }
   function paint() { if (!painting) painting = requestAnimationFrame(() => { painting = 0; paintNow(); }); }
   function paintNow() {
     if (!pzReady || mapView.hidden) return;
@@ -187,12 +193,13 @@
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.setTransform(d * s, 0, 0, d * s, d * x, d * y);
     ctx.imageSmoothingEnabled = true;
-    ctx.imageSmoothingQuality = 'high';
+    ctx.imageSmoothingQuality = moving ? 'low' : 'high'; // best scaling only for the still frame
     for (const name of order) {
       const st = L[name];
       if (st.a <= 0.001) continue;
       if (st.lo) { ctx.globalAlpha = st.a; ctx.drawImage(st.lo, 0, 0, W, H); }
-      if (st.hi && st.hiA > 0.001) { ctx.globalAlpha = st.a * st.hiA; ctx.drawImage(st.hi, 0, 0, W, H); }
+      // the sharp picture only when zoomed in enough to need it; zoomed out, the light one is exact
+      if (st.hi && st.hiA > 0.001 && s > sharpAt() * 0.85) { ctx.globalAlpha = st.a * st.hiA; ctx.drawImage(st.hi, 0, 0, W, H); }
     }
     ctx.globalAlpha = 1;
   }
@@ -219,6 +226,7 @@
       tw.obj[tw.key] = tw.from + (tw.to - tw.from) * easeIO(k);
       if (k >= 1) { tweens.delete(id); tw.done && tw.done(); }
     }
+    moved();
     paintNow();
     if (tweens.size) requestAnimationFrame(tick);
   }
@@ -233,19 +241,32 @@
       const im = new Image();
       im.decoding = 'async';
       if (!big && name === 'plan') im.fetchPriority = 'high';
-      im.onload = () => (im.decode ? im.decode().catch(() => {}) : Promise.resolve()).then(() => {
-        if (layerLoads[key] === undefined) return done(); // dropped while loading
-        if (big) { L[name].hi = im; L[name].hiA = 0; tween(L[name], 'hiA', 1, 400); }
-        else { L[name].lo = im; paint(); }
+      im.onload = () => bitmap(im).then(pic => {
+        if (layerLoads[key] === undefined) { free(pic); return done(); } // dropped while loading
+        if (big) { L[name].hi = pic; L[name].hiA = 0; keepSharp(name); tween(L[name], 'hiA', 1, 400); }
+        else { L[name].lo = pic; paint(); }
         done();
       });
       im.onerror = () => done();
       im.src = u(`assets/map/${name}${big ? '' : '-sm'}.webp`);
     }));
   }
-  // A sharp picture is 46 MB once decoded: only the layer on screen keeps one.
+  // decode once, off the main thread, into a bitmap the canvas can draw without converting it again
+  const bitmap = im => window.createImageBitmap
+    ? createImageBitmap(im).catch(() => (im.decode ? im.decode().then(() => im, () => im) : im))
+    : (im.decode ? im.decode().then(() => im, () => im) : Promise.resolve(im));
+  const free = pic => { if (pic && pic.close) pic.close(); };
+  // A sharp picture is 46 MB once decoded. Phones keep one, the one on screen; computers keep the
+  // last two, so flicking between two layers never decodes the same picture twice.
+  const sharpKept = [];
+  function keepSharp(name) {
+    const i = sharpKept.indexOf(name); if (i >= 0) sharpKept.splice(i, 1);
+    sharpKept.push(name);
+    while (sharpKept.length > (isPhone() || lowMemory ? 1 : 2)) dropSharp(sharpKept.shift());
+  }
   function dropSharp(name) {
     delete layerLoads[`${name}-hi`];
+    free(L[name].hi);
     L[name].hi = null; L[name].hiA = 0;
   }
   // load the sharp picture only once the screen needs more pixels than the light one has
@@ -267,7 +288,8 @@
       const others = Object.keys(L).filter(n => n !== name);
       const cover = () => {
         if (turn !== layerTurn) return;
-        others.forEach(n => { L[n].a = 0; dropSharp(n); });
+        others.forEach(n => { L[n].a = 0; });
+        if (L[name].hi) keepSharp(name);
         paint();
       };
       if (instant) { L[name].a = 1; cover(); return; }
@@ -337,7 +359,7 @@
   function placeMarks(t) {
     for (const [el, [x, y]] of overlays) el.style.translate = `${t.x + x * t.s}px ${t.y + y * t.s}px`;
     cones.setAttribute('transform', `matrix(${t.s} 0 0 ${t.s} ${t.x} ${t.y})`);
-    if (pzReady) { paintNow(); if (t.s > sharpAt()) loadLayer(layer, true); }
+    if (pzReady) { moved(); paintNow(); if (t.s > sharpAt()) loadLayer(layer, true); }
   }
 
   function mapInset() {
