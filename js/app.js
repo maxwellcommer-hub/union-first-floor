@@ -214,6 +214,8 @@
     b.className = 'pin dot';
     b.type = 'button';
     b.innerHTML = `${s.id}<span class="tip">${esc(s.title)}</span>`;
+    // the name sits on the side away from the view cone, so it never covers where the view starts
+    { const [cx, cy] = P(s.cam), [lx, ly] = P(s.look); if (ly < cy && Math.abs(ly - cy) > Math.abs(lx - cx) * 0.4) b.classList.add('tip-below'); }
     b.setAttribute('aria-label', `${s.id}, ${s.title}`);
     b.addEventListener('click', () => { if (!pz.dragged) go(`#/space/${s.id}`); });
     const cone = () => cones.querySelector(`[data-id="${s.id}"]`);

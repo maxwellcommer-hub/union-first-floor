@@ -718,3 +718,7 @@ html { scroll-behavior: smooth; }
   .reveal, .reveal .bars i b, .reveal .energy i { opacity: 1; transform: none; }
   ::view-transition-old(root), ::view-transition-new(root) { animation: none; }
 }
+
+/* pins whose view looks upward put their name underneath */
+.pin.tip-below .tip { bottom: auto; top: calc(100% + 8px); }
+@media (hover: hover) and (pointer: fine) { .pin.tip-below:hover .tip { translate: -50% 2px; } }
