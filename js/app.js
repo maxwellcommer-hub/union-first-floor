@@ -386,8 +386,11 @@
   });
 
   /* ============================================================ sheet content */
-  function fadeIn() {
+  // dir: 1 = moving forward through the walk, -1 = back, 0 = opening from the list
+  function fadeIn(dir = 0) {
     if (reduce.matches) return;
+    body.style.setProperty('--from-x', `${dir * 28}px`);
+    body.style.setProperty('--from-y', dir ? '0px' : '8px');
     body.classList.remove('enter');
     void body.offsetWidth; // restart the animation
     body.classList.add('enter');
@@ -560,11 +563,17 @@
     $('#lbClose').focus();
   }
   function closeLightbox() {
-    if (lb.hidden) return;
-    lb.hidden = true;
-    lbImg.removeAttribute('src');
-    document.body.style.overflow = '';
-    lbReturn && lbReturn.focus && lbReturn.focus();
+    if (lb.hidden || lb.classList.contains('closing')) return;
+    const done = () => {
+      lb.classList.remove('closing');
+      lb.hidden = true;
+      lbImg.removeAttribute('src');
+      document.body.style.overflow = '';
+      lbReturn && lbReturn.focus && lbReturn.focus();
+    };
+    if (reduce.matches) return done();
+    lb.classList.add('closing');
+    setTimeout(done, 180);
   }
   $('#lbClose').addEventListener('click', closeLightbox);
   lb.addEventListener('click', e => { if (e.target === lb) closeLightbox(); });
@@ -739,21 +748,23 @@
     route = parse();
     const tab = route.view === 'survey' ? 'survey' : route.view === 'story' ? 'story' : 'map';
     $$('.tabs a').forEach(a => { if (a.dataset.tab === tab) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
+    moveTabLine();
 
     if (route.view === 'survey') {
       mapView.hidden = true; story.hidden = false;
       story.innerHTML = surveyHTML(); storyBuilt = false;
       document.title = 'Survey · The First Floor';
-      window.scrollTo(0, 0);
+      window.scrollTo({ top: 0, behavior: 'instant' });
+      reveal(story);
       firstRender = false;
       return;
     }
     if (route.view === 'story') {
       mapView.hidden = true; story.hidden = false;
-      if (!storyBuilt) { story.innerHTML = storyHTML(); storyBuilt = true; }
+      if (!storyBuilt) { story.innerHTML = storyHTML(); storyBuilt = true; reveal(story); }
       document.title = 'Our thinking · The First Floor';
       const target = route.anchor && document.getElementById(route.anchor);
-      const toTarget = smooth => window.scrollTo({ top: target ? target.getBoundingClientRect().top + window.scrollY - 80 : 0, behavior: smooth ? 'smooth' : 'auto' });
+      const toTarget = smooth => window.scrollTo({ top: target ? target.getBoundingClientRect().top + window.scrollY - 80 : 0, behavior: smooth ? 'smooth' : 'instant' });
       toTarget(!firstRender);
       if (target) { // pictures above the section can still be loading: hold the position until the reader scrolls
         let held = true;
@@ -766,7 +777,7 @@
     }
     const wasHidden = mapView.hidden;
     story.hidden = true; mapView.hidden = false;
-    window.scrollTo(0, 0);
+    window.scrollTo({ top: 0, behavior: 'instant' });
     if (route.layer && layerImgs[route.layer]) setLayer(route.layer);
 
     if (route.space) {
@@ -774,8 +785,10 @@
       document.title = `${s.id} ${s.title} · The First Floor`;
       hl = null;
       body.innerHTML = spaceHTML(route.space, route.malik);
-      fadeIn();
+      const order = r => (r.malik !== null && r.malik !== undefined ? r.malik : idx(r.space));
+      fadeIn(prev.space && prev.view === 'map' ? Math.sign(order(route) - order(prev)) : 0);
       wireCompare(body);
+      hintCompare();
       scroller.scrollTop = 0;
       if (layer === 'zones') setLayer('plan');
       highlight(route.space);
@@ -795,7 +808,22 @@
     firstRender = false;
   }
 
-  window.addEventListener('hashchange', render);
+  window.addEventListener('hashchange', () => {
+    const swap = parse().view !== route.view;
+    if (swap && document.startViewTransition && !reduce.matches) {
+      // the new page must never wait on the animation: if the browser hasn't painted in 350ms, swap anyway
+      let ran = false;
+      const go = () => { if (!ran) { ran = true; render(); } };
+      document.startViewTransition(go);
+      setTimeout(go, 350);
+    } else {
+      render();
+      if (swap && !reduce.matches) { // browsers without view transitions get a plain fade
+        const el = route.view === 'map' ? mapView : story;
+        el.classList.remove('view-in'); void el.offsetWidth; el.classList.add('view-in');
+      }
+    }
+  });
   document.addEventListener('keydown', e => {
     if (!lb.hidden) { if (e.key === 'Escape') closeLightbox(); return; }
     if (route.view !== 'map' || e.target.closest('input, textarea')) return;
@@ -818,7 +846,57 @@
   });
   mq.addEventListener('change', () => { sheet.className = 'sheet'; sheetState = 'peek'; render(); });
 
+  /* ============================================================ motion helpers */
+  // one underline under the tabs that slides to the current page
+  const tabLine = document.createElement('i');
+  tabLine.className = 'tab-line';
+  $('.tabs').appendChild(tabLine);
+  function moveTabLine() {
+    const cur = $('.tabs a[aria-current="page"]');
+    if (!cur) { tabLine.style.opacity = 0; return; }
+    tabLine.style.opacity = 1;
+    tabLine.style.width = cur.offsetWidth + 'px';
+    tabLine.style.translate = `${cur.offsetLeft}px 0`;
+  }
+  window.addEventListener('resize', moveTabLine);
+  document.fonts && document.fonts.ready.then(moveTabLine);
+
+  // story and survey blocks rise in as they reach the screen; bars grow once they are seen
+  const seen = 'IntersectionObserver' in window && !reduce.matches ? new IntersectionObserver(entries => {
+    seenAlive = true;
+    for (const e of entries) if (e.isIntersecting) { e.target.classList.add('in'); seen.unobserve(e.target); }
+  }, { rootMargin: '0px 0px -8% 0px', threshold: 0.08 }) : null;
+  let seenAlive = false;
+  function reveal(root) {
+    if (!seen) return;
+    const els = $$('.sheetblock, .qcard', root);
+    els.forEach((el, i) => {
+      el.classList.add('reveal');
+      el.style.setProperty('--i', i % 2);
+      seen.observe(el);
+    });
+    // if the browser never reports back (a background tab that isn't painting), show everything anyway
+    setTimeout(() => { if (!seenAlive) els.forEach(el => el.classList.add('in')); }, 1200);
+  }
+
+  // the first before/after slider anyone opens nudges once, so it reads as something to drag
+  function hintCompare() {
+    if (reduce.matches) return;
+    let done = false;
+    try { done = sessionStorage.getItem('union-hint') === '1'; } catch (_) {}
+    const c = $('[data-compare]', body);
+    if (done || !c) return;
+    try { sessionStorage.setItem('union-hint', '1'); } catch (_) {}
+    const stop = () => c.classList.remove('hint');
+    c.addEventListener('pointerdown', stop, { once: true });
+    setTimeout(() => { c.classList.add('hint'); c.addEventListener('animationend', stop, { once: true }); }, 700);
+  }
+
+  // pins arrive one after another on the first load
+  if (!reduce.matches) Object.values(pins).forEach((p, i) => { p.style.setProperty('--i', i); p.classList.add('arrive'); });
+
   pz.fit(false);
   setLayer('plan');
   render();
+  moveTabLine();
 })();
