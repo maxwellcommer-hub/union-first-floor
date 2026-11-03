@@ -6,6 +6,7 @@
     python3 tools/build_assets.py spaces     # only the space sheets and references
     python3 tools/build_assets.py changed    # only the today / our plan pair
     python3 tools/build_assets.py elevations # only the elevation drawings
+    python3 tools/build_assets.py tiles      # only re-cut the map tiles
 
 Page numbers live in tools/deck.json. If slides move in the deck, change them there.
 Needs: poppler (pdftoppm, pdftocairo, pdfimages), Google Chrome, Pillow, numpy, scipy.
@@ -122,8 +123,26 @@ def build_map():
         c = im.crop(box)
         save_webp(c, f'{OUT}/map/{name}.webp', width=3600, q=86)
         save_webp(c, f'{OUT}/map/{name}-sm.webp', width=1800, q=80)
+    build_tiles()
     json.dump({'box': [int(v) for v in box], 'scale': 4, 'size': [int(box[2] - box[0]), int(box[3] - box[1])]},
               open(f'{OUT}/map/frame.json', 'w'))
+
+
+TILE = 600
+
+
+def build_tiles():
+    """Cut each sharp layer into 600 px tiles, so the site only loads the part you are looking at."""
+    for name in ('plan', 'zones', 'heat'):
+        im = Image.open(f'{OUT}/map/{name}.webp').convert('RGB')
+        d = f'{OUT}/map/tiles/{name}'
+        shutil.rmtree(d, ignore_errors=True)
+        os.makedirs(d)
+        for r in range(0, (im.height + TILE - 1) // TILE):
+            for c in range(0, (im.width + TILE - 1) // TILE):
+                box = (c * TILE, r * TILE, min(im.width, (c + 1) * TILE), min(im.height, (r + 1) * TILE))
+                im.crop(box).save(f'{d}/{c}_{r}.webp', 'WEBP', quality=86, method=6)
+        print('  ', f'assets/map/tiles/{name}', (im.width + TILE - 1) // TILE, 'x', (im.height + TILE - 1) // TILE, 'tiles')
 
 
 def build_changed():
@@ -255,6 +274,7 @@ if __name__ == '__main__':
     what = sys.argv[1:] or ['map', 'changed', 'spaces']
     try:
         if 'map' in what: build_map()
+        elif 'tiles' in what: build_tiles()
         if 'changed' in what: build_changed()
         if 'spaces' in what: build_spaces()
         if 'spaces' in what or 'elevations' in what: build_elevations()

@@ -174,7 +174,7 @@
      with different opacity, with nothing for the browser to rebuild. */
   const canvas = $('#mapCanvas'), ctx = canvas.getContext('2d', { alpha: false });
   const ratio = () => Math.min(devicePixelRatio || 1, 2);
-  const L = { plan: { a: 0, hiA: 0 }, zones: { a: 0, hiA: 0 }, heat: { a: 0, hiA: 0 } };
+  const L = { plan: { a: 0 }, zones: { a: 0 }, heat: { a: 0 } };
   let order = ['zones', 'heat', 'plan']; // painted bottom to top
   let painting = 0, moving = false, still = 0;
   // anything that moves the map marks it moving; 140 ms after the last move it repaints at full quality
@@ -197,18 +197,25 @@
     // 'medium' is used just for the still frame when the light picture is drawn well below its size.
     const shrink = (d * s * W) / 1800;
     ctx.imageSmoothingQuality = !moving && shrink < 0.7 ? 'medium' : 'low';
-    const sharp = s > sharpAt() * 0.85; // zoomed out, the light picture is exact and the sharp one is skipped
+    const sharp = s > sharpAt() * 0.85; // zoomed out, the light picture is exact and tiles are skipped
     // start at the topmost layer that fully covers the map; nothing under it can be seen
     let from = 0;
     for (let i = order.length - 1; i >= 0; i--) if (L[order[i]].a >= 0.999 && L[order[i]].lo) { from = i; break; }
+    const vis = sharp ? visibleTiles() : null;
+    const seam = 0.75 / (d * s); // tiles overlap by under a pixel so no hairline shows between them
     for (let i = from; i < order.length; i++) {
-      const st = L[order[i]];
+      const name = order[i], st = L[name];
       if (st.a <= 0.001) continue;
-      const hiOn = sharp && st.hi && st.hiA > 0.001;
-      // the light picture is hidden once the sharp one is fully in, so don't paint it
-      if (st.lo && !(hiOn && st.hiA >= 0.999)) { ctx.globalAlpha = st.a; ctx.drawImage(st.lo, 0, 0, W, H); }
-      if (hiOn) { ctx.globalAlpha = st.a * st.hiA; ctx.drawImage(st.hi, 0, 0, W, H); }
+      if (st.lo) { ctx.globalAlpha = st.a; ctx.drawImage(st.lo, 0, 0, W, H); }
+      if (!sharp) continue;
+      for (const [c, rr] of vis) {
+        const t = tiles.get(`${name}/${c}_${rr}`);
+        if (!t || !t.pic) continue;
+        ctx.globalAlpha = st.a * t.a;
+        ctx.drawImage(t.pic, c * TILE * KX, rr * TILE * KY, t.pic.width * KX + seam, t.pic.height * KY + seam);
+      }
     }
+    if (sharp) wantTiles(order.slice(from).filter(n => L[n].a > 0.001), vis);
     ctx.globalAlpha = 1;
   }
   function sizeCanvas() {
@@ -222,8 +229,8 @@
   // small tween engine for the opacities the canvas paints
   const tweens = new Map();
   const easeIO = k => k < .5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
-  function tween(obj, key, to, ms, done) {
-    const id = obj === L.plan || obj === L.zones || obj === L.heat ? `${Object.keys(L).find(n => L[n] === obj)}.${key}` : key;
+  function tween(obj, key, to, ms, done, id) {
+    id = id || `${Object.keys(L).find(n => L[n] === obj)}.${key}`;
     if (reduce.matches || ms <= 0) { obj[key] = to; tweens.delete(id); paint(); done && done(); return; }
     tweens.set(id, { obj, key, from: obj[key], to, t0: performance.now(), ms, done });
     if (tweens.size === 1) requestAnimationFrame(tick);
@@ -239,47 +246,83 @@
     if (tweens.size) requestAnimationFrame(tick);
   }
 
-  // Each layer has a light picture (1800 across) and, once you zoom in, a sharp one (3600 across)
-  // that fades in over it after it has fully decoded, so the map never blanks while loading.
+  // Each layer has a light picture (1800 across) for the whole floor. Zoomed in, the sharp version
+  // (3600 across) comes in as 600 px tiles, only the ones on screen, each fading in as it arrives,
+  // so nothing large is ever decoded or sent to the graphics card at once.
   const layerLoads = {};
-  function loadLayer(name, big) {
-    const key = `${name}-${big ? 'hi' : 'lo'}`;
-    if (layerLoads[key]) return layerLoads[key];
-    return (layerLoads[key] = new Promise(done => {
+  function loadLayer(name) {
+    if (layerLoads[name]) return layerLoads[name];
+    return (layerLoads[name] = new Promise(done => {
       const im = new Image();
       im.decoding = 'async';
-      if (!big && name === 'plan') im.fetchPriority = 'high';
-      im.onload = () => bitmap(im).then(pic => {
-        if (layerLoads[key] === undefined) { free(pic); return done(); } // dropped while loading
-        if (big) { L[name].hi = pic; L[name].hiA = 0; keepSharp(name); tween(L[name], 'hiA', 1, 400); }
-        else { L[name].lo = pic; paint(); }
-        done();
-      });
+      if (name === 'plan') im.fetchPriority = 'high';
+      im.onload = () => bitmap(im).then(pic => { L[name].lo = pic; paint(); done(); });
       im.onerror = () => done();
-      im.src = u(`assets/map/${name}${big ? '' : '-sm'}.webp`);
+      im.src = u(`assets/map/${name}-sm.webp`);
     }));
   }
-  // decode once, off the main thread, into a bitmap the canvas can draw without converting it again
+  // decode off the main thread into a bitmap the canvas can draw without converting it again
   const bitmap = im => window.createImageBitmap
     ? createImageBitmap(im).catch(() => (im.decode ? im.decode().then(() => im, () => im) : im))
     : (im.decode ? im.decode().then(() => im, () => im) : Promise.resolve(im));
   const free = pic => { if (pic && pic.close) pic.close(); };
-  // A sharp picture is 46 MB once decoded. Phones keep one, the one on screen; computers keep the
-  // last two, so flicking between two layers never decodes the same picture twice.
-  const sharpKept = [];
-  function keepSharp(name) {
-    const i = sharpKept.indexOf(name); if (i >= 0) sharpKept.splice(i, 1);
-    sharpKept.push(name);
-    while (sharpKept.length > (isPhone() || lowMemory ? 1 : 2)) dropSharp(sharpKept.shift());
-  }
-  function dropSharp(name) {
-    delete layerLoads[`${name}-hi`];
-    free(L[name].hi);
-    L[name].hi = null; L[name].hiA = 0;
-  }
-  // load the sharp picture only once the screen needs more pixels than the light one has
+
   const lowMemory = (navigator.deviceMemory || 8) <= 2;
+  // zoomed in past the point where the light picture runs out of pixels, tiles take over
   const sharpAt = () => lowMemory ? Infinity : (1800 * 1.15) / (W * ratio());
+  const TILE = 600, SW = 3600, SH = Math.round(SW * H / W), COLS = Math.ceil(SW / TILE), ROWS = Math.ceil(SH / TILE);
+  const KX = W / SW, KY = H / SH;
+  const tiles = new Map(); // "layer/c_r" -> { pic, a } ; Map order doubles as least-recently-used order
+  const tileCap = () => (isPhone() || lowMemory ? 30 : 80); // about 1.4 MB each once decoded
+  let tileQueue = [], tilesLoading = 0;
+  function visibleTiles() {
+    const r = view.getBoundingClientRect(), { x, y, s } = pz.t;
+    const x0 = -x / s, y0 = -y / s, x1 = (r.width - x) / s, y1 = (r.height - y) / s;
+    const c0 = Math.max(0, Math.floor(x0 / (TILE * KX))), c1 = Math.min(COLS - 1, Math.floor(x1 / (TILE * KX)));
+    const r0 = Math.max(0, Math.floor(y0 / (TILE * KY))), r1 = Math.min(ROWS - 1, Math.floor(y1 / (TILE * KY)));
+    const out = [];
+    for (let rr = r0; rr <= r1; rr++) for (let c = c0; c <= c1; c++) out.push([c, rr]);
+    return out;
+  }
+  function wantTiles(names, vis) {
+    const r = view.getBoundingClientRect(), { x, y, s } = pz.t;
+    const cx = (r.width / 2 - x) / s, cy = (r.height / 2 - y) / s;
+    tileQueue = [];
+    for (const name of names) for (const [c, rr] of vis) {
+      const key = `${name}/${c}_${rr}`;
+      const t = tiles.get(key);
+      if (t) { tiles.delete(key); tiles.set(key, t); continue; } // still in use: most recent
+      const d = Math.hypot((c + .5) * TILE * KX - cx, (rr + .5) * TILE * KY - cy) + (name === layer ? 0 : 1e6);
+      tileQueue.push({ key, name, c, rr, d });
+    }
+    tileQueue.sort((p, q) => p.d - q.d); // the middle of the screen, on the layer you picked, first
+    pumpTiles();
+  }
+  function pumpTiles() {
+    while (tilesLoading < 6 && tileQueue.length) {
+      const job = tileQueue.shift();
+      if (tiles.has(job.key)) continue;
+      const t = { pic: null, a: 0 };
+      tiles.set(job.key, t);
+      tilesLoading++;
+      fetch(u(`assets/map/tiles/${job.name}/${job.c}_${job.rr}.webp`))
+        .then(res => res.blob()).then(b => createImageBitmap(b))
+        .then(pic => {
+          if (tiles.get(job.key) !== t) return free(pic); // evicted while loading
+          t.pic = pic; tween(t, 'a', 1, 220, null, job.key);
+        })
+        .catch(() => tiles.delete(job.key))
+        .finally(() => { tilesLoading--; evictTiles(); pumpTiles(); });
+    }
+  }
+  function evictTiles() {
+    const keep = new Set(visibleTiles().map(([c, rr]) => `${layer}/${c}_${rr}`));
+    for (const [key, t] of tiles) {
+      if (tiles.size <= tileCap()) break;
+      if (keep.has(key) || !t.pic) continue;
+      free(t.pic); tiles.delete(key);
+    }
+  }
 
   // Switching layers: the new one is painted on top and fades in; the ones underneath stay
   // fully painted until it covers them, so the plan never dips or flashes partway through.
@@ -290,14 +333,13 @@
     $$('.layers button').forEach(b => b.setAttribute('aria-checked', String(b.dataset.layer === name)));
     mapView.classList.toggle('show-zones', name === 'zones');
     mapView.classList.toggle('show-heat', name === 'heat');
-    loadLayer(name, false).then(() => {
+    loadLayer(name).then(() => {
       if (turn !== layerTurn) return;
       order = order.filter(n => n !== name).concat(name);
       const others = Object.keys(L).filter(n => n !== name);
       const cover = () => {
         if (turn !== layerTurn) return;
         others.forEach(n => { L[n].a = 0; });
-        if (L[name].hi) keepSharp(name);
         paint();
       };
       if (instant) { L[name].a = 1; cover(); return; }
@@ -305,7 +347,6 @@
       // if this layer was already showing, start from where it is, not from blank
       tween(L[name], 'a', 1, 520 * (1 - L[name].a), cover);
     });
-    if (pzReady && pz.t.s > sharpAt()) loadLayer(name, true);
   }
   $$('.layers button').forEach(b => b.addEventListener('click', () => setLayer(b.dataset.layer)));
   let pzReady = false;
@@ -367,7 +408,7 @@
   function placeMarks(t) {
     for (const [el, [x, y]] of overlays) el.style.translate = `${t.x + x * t.s}px ${t.y + y * t.s}px`;
     cones.setAttribute('transform', `matrix(${t.s} 0 0 ${t.s} ${t.x} ${t.y})`);
-    if (pzReady) { moved(); paintNow(); if (t.s > sharpAt()) loadLayer(layer, true); }
+    if (pzReady) { moved(); paintNow(); }
   }
 
   function mapInset() {
@@ -1027,5 +1068,5 @@
   render();
   moveTabLine();
   const idle = window.requestIdleCallback || (f => setTimeout(f, 800));
-  if (!isPhone() && !lowMemory) idle(() => { loadLayer('zones', false); loadLayer('heat', false); });
+  if (!isPhone() && !lowMemory) idle(() => { loadLayer('zones'); loadLayer('heat'); });
 })();
