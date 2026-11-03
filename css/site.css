@@ -89,9 +89,14 @@ a { color: inherit; }
 .viewport.dragging { cursor: grabbing; }
 .world { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
 .cones { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
-.cone { fill: var(--crimson); fill-opacity: 0; transition: fill-opacity .3s; }
-.cone.hover { fill-opacity: .18; }
-.cone.on { fill: var(--crimson); fill-opacity: .42; }
+.layer-stack { position: absolute; inset: 0; isolation: isolate; } /* layers restack inside here, never over the cones */
+.cones { z-index: 1; }
+/* every camera angle shows on the plan, as in the deck's key plans; the open space's is strongest */
+.cone { fill: var(--crimson); fill-opacity: .14; transition: fill-opacity .3s; }
+.cone.dim { fill-opacity: .05; }
+.cone.hover { fill-opacity: .28; }
+.cone.on { fill-opacity: .42; }
+.show-zones .cone:not(.on), .show-heat .cone:not(.on) { fill-opacity: 0; }
 
 .marks { position: absolute; inset: 0; pointer-events: none; }
 /* Marks are placed with the `translate` property (set from JS) so that `scale` on hover
