@@ -193,13 +193,21 @@
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.setTransform(d * s, 0, 0, d * s, d * x, d * y);
     ctx.imageSmoothingEnabled = true;
-    ctx.imageSmoothingQuality = moving ? 'low' : 'high'; // best scaling only for the still frame
-    for (const name of order) {
-      const st = L[name];
+    // Only shrinking a picture a lot needs better-than-default scaling; enlarging never does.
+    // 'medium' is used just for the still frame when the light picture is drawn well below its size.
+    const shrink = (d * s * W) / 1800;
+    ctx.imageSmoothingQuality = !moving && shrink < 0.7 ? 'medium' : 'low';
+    const sharp = s > sharpAt() * 0.85; // zoomed out, the light picture is exact and the sharp one is skipped
+    // start at the topmost layer that fully covers the map; nothing under it can be seen
+    let from = 0;
+    for (let i = order.length - 1; i >= 0; i--) if (L[order[i]].a >= 0.999 && L[order[i]].lo) { from = i; break; }
+    for (let i = from; i < order.length; i++) {
+      const st = L[order[i]];
       if (st.a <= 0.001) continue;
-      if (st.lo) { ctx.globalAlpha = st.a; ctx.drawImage(st.lo, 0, 0, W, H); }
-      // the sharp picture only when zoomed in enough to need it; zoomed out, the light one is exact
-      if (st.hi && st.hiA > 0.001 && s > sharpAt() * 0.85) { ctx.globalAlpha = st.a * st.hiA; ctx.drawImage(st.hi, 0, 0, W, H); }
+      const hiOn = sharp && st.hi && st.hiA > 0.001;
+      // the light picture is hidden once the sharp one is fully in, so don't paint it
+      if (st.lo && !(hiOn && st.hiA >= 0.999)) { ctx.globalAlpha = st.a; ctx.drawImage(st.lo, 0, 0, W, H); }
+      if (hiOn) { ctx.globalAlpha = st.a * st.hiA; ctx.drawImage(st.hi, 0, 0, W, H); }
     }
     ctx.globalAlpha = 1;
   }
