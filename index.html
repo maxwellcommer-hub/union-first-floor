@@ -10,16 +10,16 @@
 <meta property="og:title" content="The First Floor · Kansas Union Level 1">
 <meta property="og:description" content="Walk the floor plan space by space, with every before and after.">
 <meta property="og:image" content="assets/spaces/10/after.webp">
-<link rel="icon" href="favicon.svg?v=202611030115" type="image/svg+xml">
-<link rel="icon" href="favicon-32.png?v=202611030115" sizes="32x32" type="image/png">
-<link rel="icon" href="favicon.ico?v=202611030115" sizes="48x48">
-<link rel="apple-touch-icon" href="apple-touch-icon.png?v=202611030115">
-<link rel="preload" href="assets/map/plan-sm.webp?v=202611030115" as="image" fetchpriority="high">
-<link rel="stylesheet" href="css/site.css?v=202611030115">
-<script defer src="data/content.js?v=202611030115"></script>
-<script defer src="data/survey.js?v=202611030115"></script>
-<script defer src="data/assets.js?v=202611030115"></script>
-<script defer src="js/app.js?v=202611030115"></script>
+<link rel="icon" href="favicon.svg?v=202611031531" type="image/svg+xml">
+<link rel="icon" href="favicon-32.png?v=202611031531" sizes="32x32" type="image/png">
+<link rel="icon" href="favicon.ico?v=202611031531" sizes="48x48">
+<link rel="apple-touch-icon" href="apple-touch-icon.png?v=202611031531">
+<link rel="preload" href="assets/map/plan-sm.webp?v=202611031531" as="image" fetchpriority="high">
+<link rel="stylesheet" href="css/site.css?v=202611031531">
+<script defer src="data/content.js?v=202611031531"></script>
+<script defer src="data/survey.js?v=202611031531"></script>
+<script defer src="data/assets.js?v=202611031531"></script>
+<script defer src="js/app.js?v=202611031531"></script>
 </head>
 <body>
 <header class="bar">
@@ -37,14 +37,8 @@
 
 <main id="mapView" class="map-view">
   <div class="viewport" id="viewport" aria-label="Level 1 floor plan">
-    <div class="world" id="world">
-      <div class="layer-stack">
-        <div class="layer" data-layer="plan"><img class="lo" alt=""><img class="hi" alt=""></div>
-        <div class="layer" data-layer="zones"><img class="lo" alt=""><img class="hi" alt=""></div>
-        <div class="layer" data-layer="heat"><img class="lo" alt=""><img class="hi" alt=""></div>
-      </div>
-      <svg class="cones" id="cones" aria-hidden="true"></svg>
-    </div>
+    <canvas class="map-canvas" id="mapCanvas" aria-hidden="true"></canvas>
+    <svg class="cones" id="cones" aria-hidden="true"><g id="coneG"></g></svg>
     <div class="marks" id="marks"></div>
   </div>
 

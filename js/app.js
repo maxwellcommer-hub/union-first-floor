@@ -54,7 +54,7 @@
     }
     draw() {
       const { x, y, s } = this.t;
-      this.world.style.transform = `translate3d(${x}px,${y}px,0) scale(${s})`;
+      if (this.world) this.world.style.transform = `translate3d(${x}px,${y}px,0) scale(${s})`;
       this.onChange && this.onChange(this.t);
     }
     clamp(t) {
@@ -163,49 +163,98 @@
   }
 
   /* ============================================================ map */
-  const view = $('#viewport'), world = $('#world'), marks = $('#marks'), mapView = $('#mapView');
+  const view = $('#viewport'), marks = $('#marks'), mapView = $('#mapView');
   const sheet = $('#sheet'), body = $('#sheetBody'), scroller = $('#sheetScroll');
   // focus moving into the sheet must never scroll the map container itself
   mapView.addEventListener('scroll', () => { mapView.scrollTop = 0; mapView.scrollLeft = 0; });
   view.addEventListener('scroll', () => { view.scrollTop = 0; view.scrollLeft = 0; });
-  world.style.width = W + 'px';
-  world.style.height = H + 'px';
 
-  // Each layer is two pictures: a light one that shows first and a sharp one that fades in over it
-  // once it has fully decoded, so nothing ever blanks while it loads.
-  const layerEls = Object.fromEntries($$('.layer', world).map(d => [d.dataset.layer, d]));
+  /* The map is painted into one canvas the size of the window. Graphics memory then depends on
+     the window, not on the 4345 x 3831 plan, and switching layers is just painting two pictures
+     with different opacity, with nothing for the browser to rebuild. */
+  const canvas = $('#mapCanvas'), ctx = canvas.getContext('2d', { alpha: false });
+  const ratio = () => Math.min(devicePixelRatio || 1, 2);
+  const L = { plan: { a: 0, hiA: 0 }, zones: { a: 0, hiA: 0 }, heat: { a: 0, hiA: 0 } };
+  let order = ['zones', 'heat', 'plan']; // painted bottom to top
+  let painting = 0;
+  function paint() { if (!painting) painting = requestAnimationFrame(() => { painting = 0; paintNow(); }); }
+  function paintNow() {
+    if (!pzReady || mapView.hidden) return;
+    const d = ratio(), { x, y, s } = pz.t;
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.setTransform(d * s, 0, 0, d * s, d * x, d * y);
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+    for (const name of order) {
+      const st = L[name];
+      if (st.a <= 0.001) continue;
+      if (st.lo) { ctx.globalAlpha = st.a; ctx.drawImage(st.lo, 0, 0, W, H); }
+      if (st.hi && st.hiA > 0.001) { ctx.globalAlpha = st.a * st.hiA; ctx.drawImage(st.hi, 0, 0, W, H); }
+    }
+    ctx.globalAlpha = 1;
+  }
+  function sizeCanvas() {
+    const r = view.getBoundingClientRect(), d = ratio();
+    const w = Math.max(1, Math.round(r.width * d)), h = Math.max(1, Math.round(r.height * d));
+    if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; }
+    paintNow();
+  }
+  new ResizeObserver(sizeCanvas).observe(view);
+
+  // small tween engine for the opacities the canvas paints
+  const tweens = new Map();
+  const easeIO = k => k < .5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
+  function tween(obj, key, to, ms, done) {
+    const id = obj === L.plan || obj === L.zones || obj === L.heat ? `${Object.keys(L).find(n => L[n] === obj)}.${key}` : key;
+    if (reduce.matches || ms <= 0) { obj[key] = to; tweens.delete(id); paint(); done && done(); return; }
+    tweens.set(id, { obj, key, from: obj[key], to, t0: performance.now(), ms, done });
+    if (tweens.size === 1) requestAnimationFrame(tick);
+  }
+  function tick(now) {
+    for (const [id, tw] of tweens) {
+      const k = Math.min(1, (now - tw.t0) / tw.ms);
+      tw.obj[tw.key] = tw.from + (tw.to - tw.from) * easeIO(k);
+      if (k >= 1) { tweens.delete(id); tw.done && tw.done(); }
+    }
+    paintNow();
+    if (tweens.size) requestAnimationFrame(tick);
+  }
+
+  // Each layer has a light picture (1800 across) and, once you zoom in, a sharp one (3600 across)
+  // that fades in over it after it has fully decoded, so the map never blanks while loading.
   const layerLoads = {};
   function loadLayer(name, big) {
     const key = `${name}-${big ? 'hi' : 'lo'}`;
     if (layerLoads[key]) return layerLoads[key];
-    const el = $(big ? 'img.hi' : 'img.lo', layerEls[name]);
     return (layerLoads[key] = new Promise(done => {
-      const ready = () => { el.classList.add('ready'); done(); };
-      el.onload = () => (el.decode ? el.decode().catch(() => {}) : Promise.resolve()).then(ready);
-      el.onerror = () => done();
-      el.decoding = 'async';
-      if (!big && name === 'plan') el.fetchPriority = 'high';
-      el.src = u(`assets/map/${name}${big ? '' : '-sm'}.webp`);
+      const im = new Image();
+      im.decoding = 'async';
+      if (!big && name === 'plan') im.fetchPriority = 'high';
+      im.onload = () => (im.decode ? im.decode().catch(() => {}) : Promise.resolve()).then(() => {
+        if (layerLoads[key] === undefined) return done(); // dropped while loading
+        if (big) { L[name].hi = im; L[name].hiA = 0; tween(L[name], 'hiA', 1, 400); }
+        else { L[name].lo = im; paint(); }
+        done();
+      });
+      im.onerror = () => done();
+      im.src = u(`assets/map/${name}${big ? '' : '-sm'}.webp`);
     }));
   }
-
-  // A sharp layer is 46 MB once decoded: only the one on screen keeps its sharp picture.
+  // A sharp picture is 46 MB once decoded: only the layer on screen keeps one.
   function dropSharp(name) {
-    const hi = $('img.hi', layerEls[name]);
-    if (!hi.getAttribute('src')) return;
-    hi.onload = hi.onerror = null;
-    hi.removeAttribute('src');
-    hi.classList.remove('ready');
     delete layerLoads[`${name}-hi`];
+    L[name].hi = null; L[name].hiA = 0;
   }
-  // the zoom past which the sharp picture is worth its memory (phones hold far less)
-  // load the sharp picture only once the screen needs more pixels than the light one has (1800 across)
+  // load the sharp picture only once the screen needs more pixels than the light one has
   const lowMemory = (navigator.deviceMemory || 8) <= 2;
-  const sharpAt = () => lowMemory ? Infinity : (1800 * 1.15) / (W * Math.min(devicePixelRatio || 1, 3));
+  const sharpAt = () => lowMemory ? Infinity : (1800 * 1.15) / (W * ratio());
 
-  // Switching layers: the new one fades in on top of the old, and the old one is only hidden
-  // once it is fully covered, so the plan never dips or flashes partway through.
-  let layer = 'plan', layerTurn = 0, layerZ = 1, layerHide = 0;
+  // Switching layers: the new one is painted on top and fades in; the ones underneath stay
+  // fully painted until it covers them, so the plan never dips or flashes partway through.
+  let layer = 'plan', layerTurn = 0;
   function setLayer(name, instant = false) {
     const turn = ++layerTurn;
     layer = name;
@@ -214,28 +263,17 @@
     mapView.classList.toggle('show-heat', name === 'heat');
     loadLayer(name, false).then(() => {
       if (turn !== layerTurn) return;
-      const el = layerEls[name];
-      if (el.classList.contains('on') && el.style.zIndex == layerZ) return;
-      el.style.zIndex = ++layerZ;
-      clearTimeout(layerHide);
-      const others = Object.values(layerEls).filter(x => x !== el);
-      if (instant || reduce.matches) {
-        el.classList.add('on', 'snap'); others.forEach(x => { x.classList.remove('on'); dropSharp(x.dataset.layer); });
-        requestAnimationFrame(() => el.classList.remove('snap'));
-        return;
-      }
-      el.classList.add('on');
-      // hide the rest only once the new layer has finished fading in and fully covers them
+      order = order.filter(n => n !== name).concat(name);
+      const others = Object.keys(L).filter(n => n !== name);
       const cover = () => {
-        clearTimeout(layerHide);
-        el.removeEventListener('transitionend', onEnd);
         if (turn !== layerTurn) return;
-        others.forEach(x => { x.classList.add('snap'); x.classList.remove('on'); dropSharp(x.dataset.layer); });
-        requestAnimationFrame(() => others.forEach(x => x.classList.remove('snap')));
+        others.forEach(n => { L[n].a = 0; dropSharp(n); });
+        paint();
       };
-      const onEnd = e => { if (e.target === el && e.propertyName === 'opacity') cover(); };
-      el.addEventListener('transitionend', onEnd);
-      layerHide = setTimeout(cover, 1500); // in case a transition never reports back
+      if (instant) { L[name].a = 1; cover(); return; }
+      if (L[name].a >= 0.999 && others.every(n => L[n].a === 0)) return;
+      // if this layer was already showing, start from where it is, not from blank
+      tween(L[name], 'a', 1, 520 * (1 - L[name].a), cover);
     });
     if (pzReady && pz.t.s > sharpAt()) loadLayer(name, true);
   }
@@ -243,8 +281,7 @@
   let pzReady = false;
 
   // view cones: the deck's red wedge, drawn on the plan
-  const cones = $('#cones');
-  cones.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  const cones = $('#coneG');
   const NS = 'http://www.w3.org/2000/svg';
   for (const s of SPACES) {
     const [cx, cy] = P(s.cam), [lx, ly] = P(s.look);
@@ -299,7 +336,8 @@
 
   function placeMarks(t) {
     for (const [el, [x, y]] of overlays) el.style.translate = `${t.x + x * t.s}px ${t.y + y * t.s}px`;
-    if (pzReady && t.s > sharpAt()) loadLayer(layer, true);
+    cones.setAttribute('transform', `matrix(${t.s} 0 0 ${t.s} ${t.x} ${t.y})`);
+    if (pzReady) { paintNow(); if (t.s > sharpAt()) loadLayer(layer, true); }
   }
 
   function mapInset() {
@@ -309,7 +347,7 @@
     }
     return { t: 70, r: 70, b: 40, l: 24 };
   }
-  const pz = new PanZoom(view, world, { w: W, h: H, onChange: placeMarks, inset: mapInset, maxZoom: 7 });
+  const pz = new PanZoom(view, null, { w: W, h: H, onChange: placeMarks, inset: mapInset, maxZoom: 7 });
 
   $('#zoomIn').addEventListener('click', () => pz.zoomBy(1.6));
   $('#zoomOut').addEventListener('click', () => pz.zoomBy(1 / 1.6));
@@ -834,7 +872,8 @@
     const wasHidden = mapView.hidden;
     story.hidden = true; mapView.hidden = false;
     window.scrollTo({ top: 0, behavior: 'instant' });
-    if (route.layer && layerEls[route.layer] && (route.layer !== layer || firstRender)) setLayer(route.layer, firstRender);
+    if (wasHidden) sizeCanvas();
+    if (route.layer && L[route.layer] && (route.layer !== layer || firstRender)) setLayer(route.layer, firstRender);
 
     if (route.space) {
       const s = byId(route.space);

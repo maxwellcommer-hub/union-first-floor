@@ -87,9 +87,8 @@ a { color: inherit; }
   -webkit-user-select: none; user-select: none;
 }
 .viewport.dragging { cursor: grabbing; }
-.world { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+.map-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 .cones { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
-.layer-stack { position: absolute; inset: 0; isolation: isolate; } /* layers restack inside here, never over the cones */
 .cones { z-index: 1; }
 /* every camera angle shows on the plan, as in the deck's key plans; the open space's is strongest */
 .cone { fill: var(--crimson); fill-opacity: .14; transition: fill-opacity .3s; }
@@ -721,17 +720,6 @@ html { scroll-behavior: smooth; }
 /* ================================================================ motion, second pass
    Opacity and small moves only, each with a single owner, so nothing fights or flickers. */
 
-/* map layers: the incoming one fades in on top; the one underneath is dropped once covered */
-.layer { position: absolute; inset: 0; opacity: 0; pointer-events: none; visibility: hidden;
-  transition: opacity .52s cubic-bezier(.4, 0, .2, 1); }
-.layer.on { opacity: 1; visibility: visible; }
-.layer.snap, .layer.snap img { transition: none !important; }
-.layer img { position: absolute; inset: 0; width: 100%; height: 100%; -webkit-user-drag: none; }
-.layer .lo { opacity: 0; }
-.layer .lo.ready { opacity: 1; }
-.layer .hi { opacity: 0; transition: opacity .4s ease-out; }
-.layer .hi.ready { opacity: 1; }
-
 /* what sits on the plan moves with the layer: names come in one after another, numbers step back */
 .zlabel { opacity: 0; scale: .92; transform-origin: 15px 15px;
   transition: opacity .25s ease-out, scale .25s ease-out; transition-delay: 0s; }
@@ -757,7 +745,7 @@ html { scroll-behavior: smooth; }
 .reveal { transform: translateY(14px); transition: opacity .55s ease-out, transform .55s var(--ease-out); }
 
 @media (prefers-reduced-motion: reduce) {
-  .layer, .layer img, .zlabel, .heat-key, .view-out, .view-in { transition: none !important; animation: none !important; }
+  .zlabel, .heat-key, .view-out, .view-in { transition: none !important; animation: none !important; }
 }
 
 /* long pages: the browser skips drawing blocks far off screen until you get near them */
