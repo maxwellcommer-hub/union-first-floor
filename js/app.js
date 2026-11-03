@@ -749,7 +749,9 @@
   lb.addEventListener('click', e => { if (e.target === lb) closeLightbox(); });
 
   /* ============================================================ story */
-  const story = $('#storyView');
+  const story = $('#storyView'), surveyView = $('#surveyView');
+  const viewEl = v => (v === 'map' ? mapView : v === 'survey' ? surveyView : story);
+  let surveyBuilt = false;
   function storyHTML() {
     const sv = D.survey, pe = D.persona, m = D.meta;
     const bars = (rows, cls = '') => `<ul class="bars ${cls}">${rows.map(([t, n]) => `<li><div><span>${esc(t)}</span><strong>${n}%</strong></div><i><b style="width:${n}%"></b></i></li>`).join('')}</ul>`;
@@ -895,7 +897,7 @@
 
   /* ============================================================ routing */
   let route = {};
-  let storyBuilt = false;
+  let storyBuilt = false, storyShown = false;
   function parse() {
     const h = location.hash.replace(/^#/, '') || '/';
     const [path, q] = h.split('?');
@@ -921,18 +923,20 @@
     moveTabLine();
 
     if (route.view === 'survey') {
-      mapView.hidden = true; story.hidden = false;
-      story.innerHTML = surveyHTML(); storyBuilt = false;
+      mapView.hidden = true; story.hidden = true; surveyView.hidden = false;
+      const fresh = !surveyBuilt;
+      if (fresh) { surveyView.innerHTML = surveyHTML(); surveyBuilt = true; }
       document.title = 'Survey · The First Floor';
       window.scrollTo({ top: 0, behavior: 'instant' });
-      requestAnimationFrame(() => reveal(story));
+      if (fresh) requestAnimationFrame(() => reveal(surveyView));
       firstRender = false;
       return;
     }
     if (route.view === 'story') {
-      mapView.hidden = true; story.hidden = false;
-      const fresh = !storyBuilt;
-      if (fresh) { story.innerHTML = storyHTML(); storyBuilt = true; }
+      mapView.hidden = true; surveyView.hidden = true; story.hidden = false;
+      const fresh = !storyShown;
+      storyShown = true;
+      if (!storyBuilt) { story.innerHTML = storyHTML(); storyBuilt = true; }
       document.title = 'Our thinking · The First Floor';
       const target = route.anchor && document.getElementById(route.anchor);
       const toTarget = smooth => window.scrollTo({ top: target ? target.getBoundingClientRect().top + window.scrollY - 80 : 0, behavior: smooth ? 'smooth' : 'instant' });
@@ -948,7 +952,7 @@
       return;
     }
     const wasHidden = mapView.hidden;
-    story.hidden = true; mapView.hidden = false;
+    story.hidden = true; surveyView.hidden = true; mapView.hidden = false;
     window.scrollTo({ top: 0, behavior: 'instant' });
     if (wasHidden) sizeCanvas();
     if (route.layer && L[route.layer] && (route.layer !== layer || firstRender)) setLayer(route.layer, firstRender);
@@ -986,13 +990,13 @@
   window.addEventListener('hashchange', () => {
     const swap = parse().view !== route.view;
     clearTimeout(swapTimer);
-    if (!swap || reduce.matches || firstRender) { [mapView, story].forEach(v => v.classList.remove('view-out')); render(); return; }
-    const out = route.view === 'map' ? mapView : story;
+    if (!swap || reduce.matches || firstRender) { [mapView, story, surveyView].forEach(v => v.classList.remove('view-out')); render(); return; }
+    const out = viewEl(route.view);
     out.classList.add('view-out');
     swapTimer = setTimeout(() => {
       out.classList.remove('view-out');
       render();
-      const inn = route.view === 'map' ? mapView : story;
+      const inn = viewEl(route.view);
       inn.classList.remove('view-in'); void inn.offsetWidth; inn.classList.add('view-in');
     }, 150);
   });
@@ -1076,4 +1080,6 @@
   moveTabLine();
   const idle = window.requestIdleCallback || (f => setTimeout(f, 800));
   if (!isPhone() && !lowMemory) idle(() => { loadLayer('zones'); loadLayer('heat'); });
+  // build the long "Our thinking" page while nothing is happening, so opening it is instant
+  idle(() => { if (!storyBuilt) { story.innerHTML = storyHTML(); storyBuilt = true; } });
 })();
