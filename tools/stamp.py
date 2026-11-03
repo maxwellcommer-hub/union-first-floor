@@ -7,6 +7,7 @@ index = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 v = time.strftime('%Y%m%d%H%M')
 html = open(index).read()
 html = re.sub(r'((?:href|src)="(?:css|js|data)/[^"?]+\.(?:css|js))(?:\?v=\w+)?"', rf'\1?v={v}"', html)
+html = re.sub(r'(href="assets/map/plan-sm\.webp)(?:\?v=\w+)?"', rf'\1?v={v}"', html)
 html = re.sub(r'(href="(?:favicon[^"?]*|apple-touch-icon\.png))(?:\?v=\w+)?"', rf'\1?v={v}"', html)  # browsers cache icons hardest
 open(index, 'w').write(html)
 print('stamped', v)

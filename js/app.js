@@ -48,7 +48,11 @@
       return { x: i.l, y: i.t, w: Math.max(80, r.width - i.l - i.r), h: Math.max(80, r.height - i.t - i.b) };
     }
     fitScale() { const a = this.safe(); return Math.min(a.w / this.w, a.h / this.h); }
-    apply() {
+    apply(now = false) { // touch and wheel events can arrive faster than the screen redraws: draw once per frame
+      if (now) return this.draw();
+      if (!this.frame) this.frame = requestAnimationFrame(() => { this.frame = 0; this.draw(); });
+    }
+    draw() {
       const { x, y, s } = this.t;
       this.world.style.transform = `translate3d(${x}px,${y}px,0) scale(${s})`;
       this.onChange && this.onChange(this.t);
@@ -74,7 +78,7 @@
     go(target, animate = true) {
       cancelAnimationFrame(this.anim);
       target = this.clamp({ ...target });
-      if (!animate || reduce.matches) { this.t = target; this.apply(); return; }
+      if (!animate || reduce.matches) { this.t = target; this.apply(true); return; }
       const from = { ...this.t }, t0 = performance.now(), dur = 650;
       const ease = k => k < .5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
       const step = now => {
@@ -82,7 +86,7 @@
         const s = from.s * Math.pow(target.s / from.s, k);
         // keep the motion straight in screen space while the scale changes
         this.t = { s, x: from.x + (target.x - from.x) * k, y: from.y + (target.y - from.y) * k };
-        this.apply();
+        this.apply(true);
         if (k < 1) this.anim = requestAnimationFrame(step);
       };
       this.anim = requestAnimationFrame(step);
@@ -179,6 +183,8 @@
       const ready = () => { el.classList.add('ready'); done(); };
       el.onload = () => (el.decode ? el.decode().catch(() => {}) : Promise.resolve()).then(ready);
       el.onerror = () => done();
+      el.decoding = 'async';
+      if (!big && name === 'plan') el.fetchPriority = 'high';
       el.src = u(`assets/map/${name}${big ? '' : '-sm'}.webp`);
     }));
   }
@@ -193,7 +199,9 @@
     delete layerLoads[`${name}-hi`];
   }
   // the zoom past which the sharp picture is worth its memory (phones hold far less)
-  const sharpAt = () => pz.fitScale() * (isPhone() ? 2.4 : 1.5);
+  // load the sharp picture only once the screen needs more pixels than the light one has (1800 across)
+  const lowMemory = (navigator.deviceMemory || 8) <= 2;
+  const sharpAt = () => lowMemory ? Infinity : (1800 * 1.15) / (W * Math.min(devicePixelRatio || 1, 3));
 
   // Switching layers: the new one fades in on top of the old, and the old one is only hidden
   // once it is fully covered, so the plan never dips or flashes partway through.
@@ -950,5 +958,5 @@
   render();
   moveTabLine();
   const idle = window.requestIdleCallback || (f => setTimeout(f, 800));
-  idle(() => { loadLayer('zones', false); loadLayer('heat', false); });
+  if (!isPhone() && !lowMemory) idle(() => { loadLayer('zones', false); loadLayer('heat', false); });
 })();
