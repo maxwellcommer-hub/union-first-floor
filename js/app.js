@@ -183,6 +183,18 @@
     }));
   }
 
+  // A sharp layer is 46 MB once decoded: only the one on screen keeps its sharp picture.
+  function dropSharp(name) {
+    const hi = $('img.hi', layerEls[name]);
+    if (!hi.getAttribute('src')) return;
+    hi.onload = hi.onerror = null;
+    hi.removeAttribute('src');
+    hi.classList.remove('ready');
+    delete layerLoads[`${name}-hi`];
+  }
+  // the zoom past which the sharp picture is worth its memory (phones hold far less)
+  const sharpAt = () => pz.fitScale() * (isPhone() ? 2.4 : 1.5);
+
   // Switching layers: the new one fades in on top of the old, and the old one is only hidden
   // once it is fully covered, so the plan never dips or flashes partway through.
   let layer = 'plan', layerTurn = 0, layerZ = 1, layerHide = 0;
@@ -200,7 +212,7 @@
       clearTimeout(layerHide);
       const others = Object.values(layerEls).filter(x => x !== el);
       if (instant || reduce.matches) {
-        el.classList.add('on', 'snap'); others.forEach(x => x.classList.remove('on'));
+        el.classList.add('on', 'snap'); others.forEach(x => { x.classList.remove('on'); dropSharp(x.dataset.layer); });
         requestAnimationFrame(() => el.classList.remove('snap'));
         return;
       }
@@ -210,14 +222,14 @@
         clearTimeout(layerHide);
         el.removeEventListener('transitionend', onEnd);
         if (turn !== layerTurn) return;
-        others.forEach(x => { x.classList.add('snap'); x.classList.remove('on'); });
+        others.forEach(x => { x.classList.add('snap'); x.classList.remove('on'); dropSharp(x.dataset.layer); });
         requestAnimationFrame(() => others.forEach(x => x.classList.remove('snap')));
       };
       const onEnd = e => { if (e.target === el && e.propertyName === 'opacity') cover(); };
       el.addEventListener('transitionend', onEnd);
       layerHide = setTimeout(cover, 1500); // in case a transition never reports back
     });
-    if (pzReady && pz.t.s > pz.fitScale() * 1.5) loadLayer(name, true);
+    if (pzReady && pz.t.s > sharpAt()) loadLayer(name, true);
   }
   $$('.layers button').forEach(b => b.addEventListener('click', () => setLayer(b.dataset.layer)));
   let pzReady = false;
@@ -279,7 +291,7 @@
 
   function placeMarks(t) {
     for (const [el, [x, y]] of overlays) el.style.translate = `${t.x + x * t.s}px ${t.y + y * t.s}px`;
-    if (pzReady && t.s > pz.fitScale() * 1.5) loadLayer(layer, true);
+    if (pzReady && t.s > sharpAt()) loadLayer(layer, true);
   }
 
   function mapInset() {

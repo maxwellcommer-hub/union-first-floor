@@ -81,7 +81,7 @@ a { color: inherit; }
   -webkit-user-select: none; user-select: none;
 }
 .viewport.dragging { cursor: grabbing; }
-.world { position: absolute; left: 0; top: 0; transform-origin: 0 0; will-change: transform; }
+.world { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
 .cones { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
 .cone { fill: var(--crimson); fill-opacity: 0; transition: fill-opacity .3s; }
 .cone.hover { fill-opacity: .18; }
@@ -90,7 +90,7 @@ a { color: inherit; }
 .marks { position: absolute; inset: 0; pointer-events: none; }
 /* Marks are placed with the `translate` property (set from JS) so that `scale` on hover
    grows the circle in place instead of multiplying its position on the plan. */
-.pin, .zlabel, .entry, .ftlabel { position: absolute; left: 0; top: 0; will-change: translate; }
+.pin, .zlabel, .entry, .ftlabel { position: absolute; left: 0; top: 0; }
 .pin { pointer-events: auto; margin: -15px 0 0 -15px; transition: background-color .2s, scale .2s var(--ease), opacity .25s; }
 .pin::after { content: ''; position: absolute; inset: -7px; border-radius: 50%; } /* bigger touch target */
 .pin.on { background: var(--crimson); scale: 1.2; z-index: 3; }
@@ -711,9 +711,9 @@ html { scroll-behavior: smooth; }
    Opacity and small moves only, each with a single owner, so nothing fights or flickers. */
 
 /* map layers: the incoming one fades in on top; the one underneath is dropped once covered */
-.layer { position: absolute; inset: 0; opacity: 0; pointer-events: none; will-change: opacity;
+.layer { position: absolute; inset: 0; opacity: 0; pointer-events: none; visibility: hidden;
   transition: opacity .52s cubic-bezier(.4, 0, .2, 1); }
-.layer.on { opacity: 1; }
+.layer.on { opacity: 1; visibility: visible; }
 .layer.snap, .layer.snap img { transition: none !important; }
 .layer img { position: absolute; inset: 0; width: 100%; height: 100%; -webkit-user-drag: none; }
 .layer .lo { opacity: 0; }
