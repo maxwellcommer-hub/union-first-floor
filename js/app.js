@@ -167,29 +167,60 @@
   world.style.width = W + 'px';
   world.style.height = H + 'px';
 
-  const layerImgs = Object.fromEntries($$('.layer', world).map(i => [i.dataset.layer, i]));
-  const layerState = {};
+  // Each layer is two pictures: a light one that shows first and a sharp one that fades in over it
+  // once it has fully decoded, so nothing ever blanks while it loads.
+  const layerEls = Object.fromEntries($$('.layer', world).map(d => [d.dataset.layer, d]));
+  const layerLoads = {};
   function loadLayer(name, big) {
-    const st = layerState[name] || (layerState[name] = {});
-    const want = big ? 'big' : 'small';
-    if (st.level === 'big' || st.level === want) return;
-    const src = u(`assets/map/${name}${big ? '' : '-sm'}.webp`);
-    const img = new Image();
-    img.decoding = 'async';
-    img.onload = () => { layerImgs[name].src = src; st.level = want; };
-    img.src = src;
+    const key = `${name}-${big ? 'hi' : 'lo'}`;
+    if (layerLoads[key]) return layerLoads[key];
+    const el = $(big ? 'img.hi' : 'img.lo', layerEls[name]);
+    return (layerLoads[key] = new Promise(done => {
+      const ready = () => { el.classList.add('ready'); done(); };
+      el.onload = () => (el.decode ? el.decode().catch(() => {}) : Promise.resolve()).then(ready);
+      el.onerror = () => done();
+      el.src = u(`assets/map/${name}${big ? '' : '-sm'}.webp`);
+    }));
   }
-  let layer = 'plan';
-  function setLayer(name) {
+
+  // Switching layers: the new one fades in on top of the old, and the old one is only hidden
+  // once it is fully covered, so the plan never dips or flashes partway through.
+  let layer = 'plan', layerTurn = 0, layerZ = 1, layerHide = 0;
+  function setLayer(name, instant = false) {
+    const turn = ++layerTurn;
     layer = name;
-    for (const [k, img] of Object.entries(layerImgs)) img.classList.toggle('on', k === name);
     $$('.layers button').forEach(b => b.setAttribute('aria-checked', String(b.dataset.layer === name)));
     mapView.classList.toggle('show-zones', name === 'zones');
     mapView.classList.toggle('show-heat', name === 'heat');
-    loadLayer(name, pz && pz.t.s > pz.fitScale() * 1.5);
+    loadLayer(name, false).then(() => {
+      if (turn !== layerTurn) return;
+      const el = layerEls[name];
+      if (el.classList.contains('on') && el.style.zIndex == layerZ) return;
+      el.style.zIndex = ++layerZ;
+      clearTimeout(layerHide);
+      const others = Object.values(layerEls).filter(x => x !== el);
+      if (instant || reduce.matches) {
+        el.classList.add('on', 'snap'); others.forEach(x => x.classList.remove('on'));
+        requestAnimationFrame(() => el.classList.remove('snap'));
+        return;
+      }
+      el.classList.add('on');
+      // hide the rest only once the new layer has finished fading in and fully covers them
+      const cover = () => {
+        clearTimeout(layerHide);
+        el.removeEventListener('transitionend', onEnd);
+        if (turn !== layerTurn) return;
+        others.forEach(x => { x.classList.add('snap'); x.classList.remove('on'); });
+        requestAnimationFrame(() => others.forEach(x => x.classList.remove('snap')));
+      };
+      const onEnd = e => { if (e.target === el && e.propertyName === 'opacity') cover(); };
+      el.addEventListener('transitionend', onEnd);
+      layerHide = setTimeout(cover, 1500); // in case a transition never reports back
+    });
+    if (pzReady && pz.t.s > pz.fitScale() * 1.5) loadLayer(name, true);
   }
   $$('.layers button').forEach(b => b.addEventListener('click', () => setLayer(b.dataset.layer)));
-  loadLayer('plan', false);
+  let pzReady = false;
 
   // view cones: the deck's red wedge, drawn on the plan
   const cones = $('#cones');
@@ -229,6 +260,7 @@
     const el = document.createElement('div');
     el.className = 'zlabel' + (z.hot ? ' hot' : '');
     el.innerHTML = `<b class="dot">${z.n}</b><span class="chip">${esc(z.name)}</span>`;
+    el.style.setProperty('--i', z.n);
     marks.appendChild(el);
     overlays.push([el, P(z.at)]);
   }
@@ -247,7 +279,7 @@
 
   function placeMarks(t) {
     for (const [el, [x, y]] of overlays) el.style.translate = `${t.x + x * t.s}px ${t.y + y * t.s}px`;
-    if (t.s > pz.fitScale() * 1.5) loadLayer(layer, true);
+    if (pzReady && t.s > pz.fitScale() * 1.5) loadLayer(layer, true);
   }
 
   function mapInset() {
@@ -390,7 +422,7 @@
   /* ============================================================ sheet content */
   // dir: 1 = moving forward through the walk, -1 = back, 0 = opening from the list
   function fadeIn(dir = 0) {
-    if (reduce.matches) return;
+    if (reduce.matches || firstRender) return;
     body.style.setProperty('--from-x', `${dir * 28}px`);
     body.style.setProperty('--from-y', dir ? '0px' : '8px');
     body.classList.remove('enter');
@@ -757,17 +789,19 @@
       story.innerHTML = surveyHTML(); storyBuilt = false;
       document.title = 'Survey · The First Floor';
       window.scrollTo({ top: 0, behavior: 'instant' });
-      reveal(story);
+      requestAnimationFrame(() => reveal(story));
       firstRender = false;
       return;
     }
     if (route.view === 'story') {
       mapView.hidden = true; story.hidden = false;
-      if (!storyBuilt) { story.innerHTML = storyHTML(); storyBuilt = true; reveal(story); }
+      const fresh = !storyBuilt;
+      if (fresh) { story.innerHTML = storyHTML(); storyBuilt = true; }
       document.title = 'Our thinking · The First Floor';
       const target = route.anchor && document.getElementById(route.anchor);
       const toTarget = smooth => window.scrollTo({ top: target ? target.getBoundingClientRect().top + window.scrollY - 80 : 0, behavior: smooth ? 'smooth' : 'instant' });
-      toTarget(!firstRender);
+      toTarget(false);
+      if (fresh) requestAnimationFrame(() => reveal(story));
       if (target) { // pictures above the section can still be loading: hold the position until the reader scrolls
         let held = true;
         const release = () => { held = false; };
@@ -780,7 +814,7 @@
     const wasHidden = mapView.hidden;
     story.hidden = true; mapView.hidden = false;
     window.scrollTo({ top: 0, behavior: 'instant' });
-    if (route.layer && layerImgs[route.layer]) setLayer(route.layer);
+    if (route.layer && layerEls[route.layer] && (route.layer !== layer || firstRender)) setLayer(route.layer, firstRender);
 
     if (route.space) {
       const s = byId(route.space);
@@ -810,21 +844,20 @@
     firstRender = false;
   }
 
+  // Page to page: the old page fades out, the new one fades in. Opacity only, so nothing shifts.
+  let swapTimer = 0;
   window.addEventListener('hashchange', () => {
     const swap = parse().view !== route.view;
-    if (swap && document.startViewTransition && !reduce.matches) {
-      // the new page must never wait on the animation: if the browser hasn't painted in 350ms, swap anyway
-      let ran = false;
-      const go = () => { if (!ran) { ran = true; render(); } };
-      document.startViewTransition(go);
-      setTimeout(go, 350);
-    } else {
+    clearTimeout(swapTimer);
+    if (!swap || reduce.matches || firstRender) { [mapView, story].forEach(v => v.classList.remove('view-out')); render(); return; }
+    const out = route.view === 'map' ? mapView : story;
+    out.classList.add('view-out');
+    swapTimer = setTimeout(() => {
+      out.classList.remove('view-out');
       render();
-      if (swap && !reduce.matches) { // browsers without view transitions get a plain fade
-        const el = route.view === 'map' ? mapView : story;
-        el.classList.remove('view-in'); void el.offsetWidth; el.classList.add('view-in');
-      }
-    }
+      const inn = route.view === 'map' ? mapView : story;
+      inn.classList.remove('view-in'); void inn.offsetWidth; inn.classList.add('view-in');
+    }, 150);
   });
   document.addEventListener('keydown', e => {
     if (!lb.hidden) { if (e.key === 'Escape') closeLightbox(); return; }
@@ -851,7 +884,8 @@
   /* ============================================================ motion helpers */
   // one underline under the tabs that slides to the current page
   const tabLine = document.createElement('i');
-  tabLine.className = 'tab-line';
+  tabLine.className = 'tab-line snap';
+  setTimeout(() => tabLine.classList.remove('snap'), 400);
   $('.tabs').appendChild(tabLine);
   function moveTabLine() {
     const cur = $('.tabs a[aria-current="page"]');
@@ -871,13 +905,14 @@
   let seenAlive = false;
   function reveal(root) {
     if (!seen) return;
-    const els = $$('.sheetblock, .qcard', root);
+    // anything already on screen, or above it, just shows; only what you scroll down to rises in
+    const els = $$('.sheetblock, .qcard', root).filter(el => el.getBoundingClientRect().top > innerHeight - 20);
     els.forEach((el, i) => {
       el.classList.add('reveal');
       el.style.setProperty('--i', i % 2);
       seen.observe(el);
     });
-    // if the browser never reports back (a background tab that isn't painting), show everything anyway
+    // a browser that never reports back (a tab that isn't painting) still shows everything
     setTimeout(() => { if (!seenAlive) els.forEach(el => el.classList.add('in')); }, 1200);
   }
 
@@ -897,8 +932,11 @@
   // pins arrive one after another on the first load
   if (!reduce.matches) Object.values(pins).forEach((p, i) => { p.style.setProperty('--i', i); p.classList.add('arrive'); });
 
+  pzReady = true;
   pz.fit(false);
-  setLayer('plan');
+  if (!parse().layer) setLayer('plan', true);
   render();
   moveTabLine();
+  const idle = window.requestIdleCallback || (f => setTimeout(f, 800));
+  idle(() => { loadLayer('zones', false); loadLayer('heat', false); });
 })();

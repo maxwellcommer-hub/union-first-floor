@@ -82,13 +82,6 @@ a { color: inherit; }
 }
 .viewport.dragging { cursor: grabbing; }
 .world { position: absolute; left: 0; top: 0; transform-origin: 0 0; will-change: transform; }
-.layer {
-  position: absolute; inset: 0; width: 100%; height: 100%;
-  opacity: 0; transition: opacity .45s var(--ease); pointer-events: none;
-  -webkit-user-drag: none;
-}
-.layer.on { opacity: 1; }
-.layer[data-layer="plan"] { opacity: 1; }
 .cones { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
 .cone { fill: var(--crimson); fill-opacity: 0; transition: fill-opacity .3s; }
 .cone.hover { fill-opacity: .18; }
@@ -140,13 +133,12 @@ a { color: inherit; }
 }
 .layers button[aria-checked="true"] { background: var(--ink); color: #fff; }
 .heat-key {
-  position: absolute; left: 16px; top: 68px; display: none; align-items: center; gap: 8px;
+  position: absolute; left: 16px; top: 68px; display: flex; align-items: center; gap: 8px;
   background: var(--card); padding: 6px 12px; border-radius: 999px; box-shadow: var(--shadow);
   font-size: 10px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase;
 }
 .heat-key i { width: 120px; height: 8px; border-radius: 4px;
   background: linear-gradient(90deg, #D7191C, #E9805F, #F6C779, #DDEBB9, #8FB8C8, #2F6DAE); }
-.show-heat .heat-key { display: flex; }
 .zoom {
   position: absolute; right: 16px; bottom: 16px; display: flex; flex-direction: column;
   background: var(--card); border-radius: var(--r-ctl); box-shadow: var(--shadow); overflow: hidden;
@@ -646,13 +638,6 @@ a.btn { display: flex; }
 html { scroll-behavior: smooth; }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
 
-/* page to page: the header stays put, the page under it crossfades */
-.bar { view-transition-name: bar; }
-::view-transition-old(root) { animation: vt-out .18s ease-in both; }
-::view-transition-new(root) { animation: vt-in .32s var(--ease-out) both; }
-@keyframes vt-out { to { opacity: 0; } }
-@keyframes vt-in { from { opacity: 0; transform: translateY(10px); } }
-.view-in { animation: vt-in .32s var(--ease-out) both; }
 
 /* the tab underline slides to the page you are on */
 .tabs { position: relative; }
@@ -716,9 +701,50 @@ html { scroll-behavior: smooth; }
 }
 @media (prefers-reduced-motion: reduce) {
   .reveal, .reveal .bars i b, .reveal .energy i { opacity: 1; transform: none; }
-  ::view-transition-old(root), ::view-transition-new(root) { animation: none; }
 }
 
 /* pins whose view looks upward put their name underneath */
 .pin.tip-below .tip { bottom: auto; top: calc(100% + 8px); }
 @media (hover: hover) and (pointer: fine) { .pin.tip-below:hover .tip { translate: -50% 2px; } }
+
+/* ================================================================ motion, second pass
+   Opacity and small moves only, each with a single owner, so nothing fights or flickers. */
+
+/* map layers: the incoming one fades in on top; the one underneath is dropped once covered */
+.layer { position: absolute; inset: 0; opacity: 0; pointer-events: none; will-change: opacity;
+  transition: opacity .52s cubic-bezier(.4, 0, .2, 1); }
+.layer.on { opacity: 1; }
+.layer.snap, .layer.snap img { transition: none !important; }
+.layer img { position: absolute; inset: 0; width: 100%; height: 100%; -webkit-user-drag: none; }
+.layer .lo { opacity: 0; }
+.layer .lo.ready { opacity: 1; }
+.layer .hi { opacity: 0; transition: opacity .4s ease-out; }
+.layer .hi.ready { opacity: 1; }
+
+/* what sits on the plan moves with the layer: names come in one after another, numbers step back */
+.zlabel { opacity: 0; scale: .92; transform-origin: 15px 15px;
+  transition: opacity .25s ease-out, scale .25s ease-out; transition-delay: 0s; }
+.show-zones .zlabel { opacity: 1; scale: 1; transition-duration: .4s, .4s;
+  transition-delay: calc(var(--i, 0) * 28ms + .12s); }
+.pin { transition: background-color .3s, scale .25s var(--ease-out), opacity .35s ease-out; }
+.show-zones .pin:not(.on), .show-heat .pin:not(.on) { transition-delay: 0s; }
+.heat-key { opacity: 0; visibility: hidden; translate: 0 -4px;
+  transition: opacity .3s ease-out, translate .3s ease-out, visibility 0s .3s; }
+.show-heat .heat-key { opacity: 1; visibility: visible; translate: 0 0; transition-delay: .15s, .15s, 0s; }
+.entry, .ftlabel { transition: opacity .3s; }
+.show-heat .ftlabel { display: block; opacity: 0; }
+
+/* pages: opacity only */
+.view-out { opacity: 0; transition: opacity .15s ease-in; }
+.view-in { animation: page-in .26s ease-out both; }
+@keyframes page-in { from { opacity: 0; } }
+
+/* the tab underline is placed, not slid, on first load */
+.tab-line.snap { transition: none; }
+
+/* reveal is only for what you scroll to; small rise, no overshoot */
+.reveal { transform: translateY(14px); transition: opacity .55s ease-out, transform .55s var(--ease-out); }
+
+@media (prefers-reduced-motion: reduce) {
+  .layer, .layer img, .zlabel, .heat-key, .view-out, .view-in { transition: none !important; animation: none !important; }
+}
