@@ -91,7 +91,7 @@ window.UNION = {
       revenue: 0 },
 
     { id: '08', title: 'The Pods', zone: 8, zoneLabel: 'Zone 8 · Conference pods',
-      cam: [993.3, 560.4], look: [933.1, 638.7],
+      cam: [958.0, 602.0], look: [898.0, 680.0],
       problem: 'Nowhere on the floor to focus.' },
 
     { id: '09', title: 'The Terrace', zone: 0, zoneLabel: 'Outdoors · Terrace',
