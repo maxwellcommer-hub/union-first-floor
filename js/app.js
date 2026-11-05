@@ -834,7 +834,7 @@
     <section class="sheetblock" id="sit">
       ${head(no(), 'Furniture references')}
       <h2 class="display">Sit down</h2>
-      <div class="grid-imgs contain" style="--n:3;margin-top:28px">${D.furniture.map(([k, b, t]) => `<figure><button data-lb="${ref(k)}" data-cap="${esc(b + ' · ' + t)}">${img(ref(k), b + ' ' + t)}</button>
+      <div class="grid-imgs contain" style="--n:4;margin-top:28px">${D.furniture.map(([k, b, t]) => `<figure><button data-lb="${ref(k)}" data-cap="${esc(b + ' · ' + t)}">${img(ref(k), b + ' ' + t)}</button>
         <figcaption><span class="label muted">${esc(b)}</span>${esc(t)}</figcaption></figure>`).join('')}</div>
     </section>
 
@@ -842,7 +842,7 @@
       ${head(no(), 'Finishes · color')}
       <div class="cols" style="align-items:end"><h2 class="display">Materials</h2><p style="font-size:18px;margin:0">${esc(D.paletteNote)}</p></div>
       <div class="swatches">${D.palette.map(([t, c]) => `<div style="background:${c};color:${light(c) ? 'var(--ink)' : '#fff'}">${esc(t)}</div>`).join('')}</div>
-      <div class="grid-imgs" style="--n:7;margin-top:12px">${D.materials.map(([k, t, w]) => `<figure><button data-lb="${ref(k)}" data-cap="${esc(t)}">${img(ref(k), t)}</button>
+      <div class="grid-imgs" style="--n:4;margin-top:12px">${D.materials.map(([k, t, w]) => `<figure><button data-lb="${ref(k)}" data-cap="${esc(t)}">${img(ref(k), t)}</button>
         <figcaption><span class="label muted">${esc(w)}</span>${esc(t)}</figcaption></figure>`).join('')}</div>
     </section>
 

@@ -32,8 +32,6 @@ WHITE_RING = 'rgb(100%, 100%, 100%)'
 
 # Card boxes on a 1920x1080 sheet, as fractions (measured on the V2 deck).
 ELEVATION_CARD = (0.0151, 0.0269, 0.9849, 0.8731)
-MORE_VIEWS = [(0.0151, 0.0269, 0.4922, 0.8731), (0.5005, 0.0269, 0.9849, 0.4426),
-              (0.5005, 0.4574, 0.7385, 0.8731), (0.7469, 0.4574, 0.9849, 0.8731)]
 
 
 def run(*a, **k):
@@ -211,13 +209,6 @@ def extract_object(oid, pages):
     raise SystemExit(f'object {oid} not found on pages {pages}')
 
 
-def before_after(page):
-    """On a before/after sheet: the big photo is 'before', the deck render is 'after'."""
-    imgs = [r for r in page_images(page) if r[2] == 'image' and int(r[3]) > 600]
-    imgs.sort(key=lambda r: int(r[3]) * int(r[4]), reverse=True)
-    return int(imgs[0][10]), int(imgs[-1][10])
-
-
 def card(page, frac, dpi):
     p = page_png(page, dpi)
     W, H = p.size
@@ -235,30 +226,49 @@ def trim(im, pad=60):
                     min(im.width, xs.max() + pad), min(im.height, ys.max() + pad)))
 
 
+def source(ref, pages=None, bg='#ffffff'):
+    """A picture from the deck: a path to the file placed in the deck (relative to the Website
+    folder), {"file": path, "bg": colour} for art with a transparent background, or a PDF object id."""
+    if isinstance(ref, dict):
+        bg, ref = ref.get('bg', bg), ref['file']
+    if isinstance(ref, int):
+        im = extract_object(ref, pages or list(range(1, 51)))
+    else:
+        im = Image.open(os.path.normpath(os.path.join(SITE, ref)))
+    if im.mode in ('RGBA', 'LA', 'P'):
+        im = im.convert('RGBA')
+        if max(im.size) > 4000:  # very large decal art: shrink before flattening
+            im.thumbnail((4000, 4000), Image.LANCZOS)
+        ground = Image.new('RGBA', im.size, bg)
+        ground.alpha_composite(im)
+        im = ground
+    return im.convert('RGB')
+
+
 def build_spaces():
     print('space sheets')
     manifest = {}
-    allpages = list(range(1, 51))
     for sid, s in CFG['spaces'].items():
         d = f'{OUT}/spaces/{sid}'
-        before_id, after_id = before_after(s['before_after'])
-        save_webp(extract_object(before_id, [s['before_after']]), f'{d}/before.webp', width=1600)
-        save_webp(extract_object(after_id, [s['before_after']]), f'{d}/after.webp', width=1600, q=88)
+        for f in os.listdir(d) if os.path.isdir(d) else []:
+            if f.startswith(('view-', 'art-')):
+                os.remove(os.path.join(d, f))  # old views and graphics, so removed ones don't linger
+        save_webp(source(s['before']), f'{d}/before.webp', width=1600)
+        save_webp(source(s['after']), f'{d}/after.webp', width=1600, q=88)
         entry = {'before': f'assets/spaces/{sid}/before.webp', 'after': f'assets/spaces/{sid}/after.webp'}
         if 'elevation' in s:
             entry['elevation'] = f'assets/spaces/{sid}/elevation.webp'
-        for i, oid in enumerate(s.get('art', [])):
-            save_webp(extract_object(oid, allpages), f'{d}/art-{i + 1}.webp', width=2000, q=86)
+        for i, ref in enumerate(s.get('art', [])):
+            save_webp(source(ref), f'{d}/art-{i + 1}.webp', width=2000, q=86)
             entry.setdefault('art', []).append(f'assets/spaces/{sid}/art-{i + 1}.webp')
-        if 'more' in s:  # "more views" sheet: keep only cards that hold a real picture
-            for i, frac in enumerate(MORE_VIEWS):
-                c = card(s['more'], (frac[0] + .008, frac[1] + .014, frac[2] - .008, frac[3] - .014), 216)  # inside the rounded corners
-                if np.array(c.convert('L')).std() > 12:
-                    save_webp(c, f'{d}/view-{i + 1}.webp', width=1800)
-                    entry.setdefault('views', []).append(f'assets/spaces/{sid}/view-{i + 1}.webp')
+        for i, ref in enumerate(s.get('views', [])):
+            save_webp(source(ref), f'{d}/view-{i + 1}.webp', width=1800)
+            entry.setdefault('views', []).append(f'assets/spaces/{sid}/view-{i + 1}.webp')
         manifest[sid] = entry
-    for name, oid in CFG['images'].items():
-        save_webp(extract_object(oid, allpages), f'{OUT}/refs/{name}.webp', width=1400)
+    for name, ref in CFG['images'].items():
+        if ref == 'KEEP':  # unchanged in the deck; keep the picture already built
+            continue
+        save_webp(source(ref), f'{OUT}/refs/{name}.webp', width=1400)
     write_manifest(manifest)
 
 

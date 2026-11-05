@@ -1,24 +1,126 @@
 {
-  "deck": "../Working Files/Union_L1_Final_Deck_V2.ai",
-  "map": { "zones_page": 9, "heat_page": 11, "changed_page": 10 },
+  "deck": "../Working Files/Finals/Union_L1_Final_Deck_V3.ai",
+  "map": {
+    "zones_page": 9,
+    "heat_page": 11,
+    "changed_page": 10
+  },
+  "_note": "Pictures are the exact files placed in the deck (paths from the Website folder). The map, 'what changed' and elevations are rendered from the deck pages.",
   "spaces": {
-    "01": { "render": 16, "before_after": 17, "elevation": 18, "art": [1634, 1635] },
-    "02": { "render": 19, "before_after": 20, "elevation": 21 },
-    "03": { "render": 22, "before_after": 23, "elevation": 24, "art": [1636, 1637] },
-    "04": { "render": 25, "before_after": 26, "more": 27 },
-    "05": { "render": 28, "before_after": 29, "more": 30 },
-    "06": { "render": 31, "before_after": 32, "more": 33 },
-    "07": { "render": 34, "before_after": 35, "elevation": 36 },
-    "08": { "render": 37, "before_after": 38, "more": 39 },
-    "09": { "render": 40, "before_after": 41, "more": 42 },
-    "10": { "render": 43, "before_after": 44, "more": 45 },
-    "11": { "render": 46, "before_after": 47, "elevation": 48, "art": [1643] }
+    "01": {
+      "elevation": 18,
+      "before": "../Working Files/Before Photos/New_11-04/IMG_0618.jpg",
+      "after": "../Working Files/Dev/Renders_Emerson_11-05/extra open area from nest.png",
+      "art": [
+        "../Working Files/Mockups/murals/Josie_11-04/main_mural.png",
+        "../Working Files/Mockups/murals/Josie_11-04/main_mural_side.png"
+      ]
+    },
+    "02": {
+      "elevation": 21,
+      "before": "../Working Files/Before Photos/New_11-04/IMG_0621.jpg",
+      "after": "../Working Files/Dev/Renders_Emerson_11-05/621 museum.png"
+    },
+    "03": {
+      "elevation": 24,
+      "before": "../Working Files/Before Photos/New_11-04/IMG_0626.jpg",
+      "after": "../Working Files/Dev/Renders_Emerson_11-05/626 upper jay_000.png",
+      "art": [
+        "../Working Files/Mockups/murals/Josie_11-04/order_mural2.png",
+        "../Working Files/Mockups/murals/Josie_11-04/order_mural1.png"
+      ]
+    },
+    "04": {
+      "before": "../Working Files/Before Photos/New_11-04/IMG_0634.jpg",
+      "after": "../Working Files/Dev/Renders_Emerson_11-05/634 back left jay.png",
+      "views": [
+        "../Working Files/Dev/Renders_Emerson_11-05/629 upper jay looking down.png",
+        "../Working Files/Dev/Renders_Emerson_11-05/627 booths_000.png",
+        "../Working Files/Dev/Renders_Emerson_11-05/extra jay shot 3_000.png"
+      ]
+    },
+    "05": {
+      "before": "../Working Files/Before Photos/New_11-04/IMG_0631.jpg",
+      "after": "../Working Files/Dev/Renders_Emerson_11-05/631 back right jay.png",
+      "views": [
+        "../Working Files/Dev/Renders_Emerson_11-05/extra jay shot2_000.png",
+        "../Working Files/Dev/Renders_Emerson_11-05/extra jay shot.png"
+      ]
+    },
+    "06": {
+      "before": "../Working Files/Before Photos/New_11-04/IMG_0617.jpg",
+      "after": "../Working Files/Dev/Renders_Emerson_11-05/extra bar shot.png",
+      "views": [
+        "../Working Files/Dev/Renders_Emerson_11-05/617 bar.png",
+        "../Working Files/Dev/Renders_Emerson_11-05/extra bar from other view.png"
+      ]
+    },
+    "07": {
+      "elevation": 36,
+      "before": "../Working Files/Before Photos/New_11-04/IMG_0653.jpg",
+      "after": "../Working Files/Dev/Renders_Emerson_11-05/653 donar wall.png"
+    },
+    "08": {
+      "before": "../Working Files/Before Photos/New_11-04/IMG_0656.jpg",
+      "after": "../Working Files/Dev/Renders_Emerson_11-05/656 pods.png",
+      "views": [
+        "../Working Files/Dev/Renders_Emerson_11-05/extra wide pod view.png",
+        "../Working Files/Dev/Renders_Emerson_11-05/extra pods.png"
+      ]
+    },
+    "09": {
+      "before": "../Working Files/Before Photos/New_11-04/IMG_0674.jpg",
+      "after": "../Working Files/Dev/Renders_Emerson_11-05/extra terrace.png",
+      "views": [
+        "../Working Files/Dev/Renders_Emerson_11-05/612.png",
+        "../Working Files/Dev/Renders_Emerson_11-05/613.png"
+      ]
+    },
+    "10": {
+      "before": "../Working Files/Before Photos/New_11-04/IMG_0649.jpg",
+      "after": "../Working Files/Dev/Renders_Emerson_11-05/649 over view of nest.png",
+      "views": [
+        "../Working Files/Dev/Renders_Emerson_11-05/0660 stage .png",
+        "../Working Files/Dev/Renders_Emerson_11-05/648 entry to hawks nest.png",
+        "../Working Files/Dev/Renders_Emerson_11-05/extra on stage.png",
+        "../Working Files/Dev/Renders_Emerson_11-05/Image36.png"
+      ]
+    },
+    "11": {
+      "elevation": 48,
+      "before": "../Working Files/Before Photos/New_11-04/IMG_0614.jpg",
+      "after": "../Working Files/Dev/Renders_Emerson_11-05/614.png",
+      "art": [
+        {
+          "file": "../Working Files/Window Decal/KU_Window_Decal_White.png",
+          "bg": "#142E54"
+        }
+      ]
+    }
   },
   "images": {
-    "today-1": 2000, "today-2": 2003, "today-3": 2004, "today-4": 2007,
-    "feel-game-room": 1618, "feel-garage-door": 1898, "feel-atrium": 1619, "feel-shade-sails": 1881,
-    "sit-jh600": 1625, "sit-mell": 1624, "sit-jalis": 1623, "sit-reception": 1622, "sit-mod": 1621, "sit-focus": 1620,
-    "mat-plywood": 1626, "mat-mesh": 1627, "mat-perforated": 1628, "mat-fabric": 1629,
-    "mat-dark-wood": 1630, "mat-steel": 1631, "mat-vinyl": 1632
+    "today-1": "../Working Files/Before Photos/New_11-04/IMG_0626.jpg",
+    "today-2": "../Working Files/Before Photos/New_11-04/IMG_0645.jpg",
+    "today-3": "../Working Files/Before Photos/New_11-04/IMG_0629.jpg",
+    "today-4": "../Working Files/Before Photos/New_11-04/IMG_0660.jpg",
+    "feel-game-room": 48,
+    "feel-garage-door": 5906,
+    "feel-atrium": 49,
+    "feel-shade-sails": 5889,
+    "sit-booth": "../Working Files/Dev/Furniture_Emerson_11-05/cutouts/Custom Standard Style Restaurant Booth - superior seating.png",
+    "sit-juno": "../Working Files/Dev/Furniture_Emerson_11-05/cutouts/juno armchair - west elm.png",
+    "sit-kronos": "../Working Files/Dev/Furniture_Emerson_11-05/cutouts/Kronos Upholstered Barrel Chair -wayfair.png",
+    "sit-centiar": "../Working Files/Dev/Furniture_Emerson_11-05/cutouts/Ashley Centiar Tall Barstool in Black -NFM.png",
+    "sit-tano": "../Working Files/Dev/Furniture_Emerson_11-05/cutouts/Tano Outdoor Curved S-Shape Modular Sectional - rove concepts.png",
+    "sit-bookcase": "../Working Files/Dev/Furniture_Emerson_11-05/stacked storage book case - dwr.png",
+    "sit-focus": "KEEP",
+    "mat-ash": "../Working Files/Dev/Materials_Emerson_11-04/Ash Wood.jpg",
+    "mat-oak": "../Working Files/Dev/Materials_Emerson_11-04/Oak Veneer.jpg",
+    "mat-walnut": "../Working Files/Dev/Materials_Emerson_11-04/walnut.png",
+    "mat-tile": "../Working Files/Dev/Materials_Emerson_11-04/white ceramic tiling.jpg",
+    "mat-limestone": "../Working Files/Dev/Materials_Emerson_11-04/_deck_limestone_tiled.jpg",
+    "mat-carpet": "../Working Files/Dev/Materials_Emerson_11-04/carepet.jpg",
+    "mat-cushion-blue": "../Working Files/Dev/Materials_Emerson_11-04/Woven cushion.png",
+    "mat-cushion-red": "../Working Files/Dev/Materials_Emerson_11-04/_deck_woven_red_tiled.jpg"
   }
 }

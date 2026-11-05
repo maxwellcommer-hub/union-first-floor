@@ -1,4 +1,4 @@
-/* Everything the site says lives here. Text is taken from the deck (Union_L1_Final_Deck_V2).
+/* Everything the site says lives here. Text is taken from the deck (Union_L1_Final_Deck_V3).
    Positions are in deck page points on the "Nine zones" sheet (1920 x 1080), so they stay
    correct when the map image is rebuilt. */
 window.UNION = {
@@ -30,18 +30,18 @@ window.UNION = {
   /* The walk, in deck order. cam = where the view is taken from, look = what it faces. */
   spaces: [
     { id: '01', title: 'The Mural', zone: 1, zoneLabel: 'Zone 1 · Campus history',
-      cam: [1434.8, 506.9], look: [1556.2, 437.0],
+      cam: [1160.0, 600.0], look: [1321.5, 528.7],
       problem: 'No clear sign of welcoming.',
       build: [
-        ['Rock Chalk mural', 'West face of the elevator core. Printed wall graphic, floor to ceiling.'],
-        ['Hail to Old KU wrap', 'South face, same graphic system. Full height, faces the main lobby.'],
+        ['Rock Chalk mural', 'North face of the elevator core. Printed wall graphic, floor to ceiling.'],
+        ['Hail to Old KU wrap', 'West face, same graphic system. Full height, faces the main lobby.'],
         ['Continuous corner', 'Graphic wraps the outside corner with no trim or reveal.']
       ],
       notes: 'Both faces run lobby floor to ceiling. Unfolded at the corner so both faces read at true size.',
       size: '29′-6″ wide · 10′-0″ to the ceiling' },
 
     { id: '02', title: 'Museum Wall', zone: 1, zoneLabel: 'Zone 1 · Campus history',
-      cam: [1503.8, 367.5], look: [1502.9, 223.7],
+      cam: [1553.9, 376.9], look: [1376.7, 267.3],
       problem: 'The history is scattered.',
       build: [
         ['Open display box', 'Bento-style cubby, 1′-0″ deep, white. Holds one Union artifact each.'],
@@ -53,7 +53,7 @@ window.UNION = {
       size: '21′-6″ wide · 10′-0″ to the ceiling' },
 
     { id: '03', title: 'Order Wall', zone: 2, zoneLabel: 'Zone 2 · Order / pickup',
-      cam: [1259.4, 281.5], look: [1122.4, 312.1],
+      cam: [1259.8, 281.8], look: [1056.4, 327.0],
       problem: 'The counter doesn’t invite anyone to stay.',
       build: [
         ['Order wall graphic', 'Printed graphic behind the counter, floor to ceiling, two panels.'],
@@ -66,19 +66,19 @@ window.UNION = {
       revenue: 1 },
 
     { id: '04', title: 'The Jay', zone: 4, zoneLabel: 'Zone 4 · Lounge / watch party',
-      cam: [1029.5, 107.0], look: [1164.6, 144.7],
+      cam: [865.0, 105.0], look: [970.0, 151.5],
       problem: 'Bland, low and empty between bookings.' },
 
     { id: '05', title: 'Jay Games', zone: 4, zoneLabel: 'Zone 4 · Lounge / watch party',
-      cam: [1121.3, 103.9], look: [992.7, 159.6],
+      cam: [1245.0, 105.0], look: [1140.0, 151.5],
       problem: 'No clear purpose.' },
 
     { id: '06', title: 'The Bar', zone: 7, zoneLabel: 'Zone 7 · Bar',
-      cam: [1362, 432], look: [1262, 396],
+      cam: [1470.0, 440.0], look: [1297.6, 401.7],
       problem: 'Nothing brings people.' },
 
     { id: '07', title: 'Donor Walk', zone: 5, zoneLabel: 'Zone 5 · Donor walk',
-      cam: [1017.4, 554.2], look: [1087.7, 432.5],
+      cam: [1017.7, 554.0], look: [1122.1, 373.7],
       problem: 'No reason to slow down.',
       build: [
         ['Donor rod', '3/4″ brushed steel rod, 3′-3″ above the ramp up to the ceiling.'],
@@ -91,20 +91,20 @@ window.UNION = {
       revenue: 0 },
 
     { id: '08', title: 'The Pods', zone: 8, zoneLabel: 'Zone 8 · Conference pods',
-      cam: [982.8, 661.1], look: [862.1, 589.4],
+      cam: [993.3, 560.4], look: [933.1, 638.7],
       problem: 'Nowhere on the floor to focus.' },
 
-    { id: '09', title: 'The Terrace', zone: 0, zoneLabel: 'Outdoors · Baumgartner Terrace',
-      cam: [940.5, 931.9], look: [991.3, 801.0],
+    { id: '09', title: 'The Terrace', zone: 0, zoneLabel: 'Outdoors · Terrace',
+      cam: [818.0, 958.5], look: [937.2, 828.3],
       problem: 'The terrace is cut off.' },
 
     { id: '10', title: 'The Front', zone: 6, zoneLabel: 'Zone 6 · Chill / event',
-      cam: [1225.5, 672.9], look: [1097.4, 615.6],
+      cam: [1319.4, 505.3], look: [1146.1, 620.8],
       problem: 'A pass-through, not a destination.',
       revenue: 2 },
 
     { id: '11', title: 'Window Decal', zone: 9, zoneLabel: 'Zone 9 · Photo op',
-      cam: [1752.4, 505.9], look: [1716.3, 641.6],
+      cam: [1807.0, 547.7], look: [1632.1, 660.8],
       problem: 'No connection.',
       build: [
         ['Skyline decal', 'Printed window film on the inside face of the glass, 5′-0″ band.'],
@@ -162,21 +162,23 @@ window.UNION = {
     ['feel-shade-sails', 'Shade sails over a plaza', 'The terrace canopy']
   ],
   furniture: [
-    ['sit-jh600', 'Fritz Hansen', 'JH600'],
-    ['sit-mell', 'COR', 'Mell bench'],
-    ['sit-jalis', 'COR', 'Jalis Flow'],
-    ['sit-reception', 'Icons of Denmark', 'Reception setting'],
-    ['sit-mod', 'Boandko', 'Mod system'],
+    ['sit-booth', 'Superior Seating', 'Booth'],
+    ['sit-juno', 'West Elm', 'Juno chair'],
+    ['sit-kronos', 'Wayfair', 'Kronos chair'],
+    ['sit-centiar', 'Ashley', 'Centiar stool'],
+    ['sit-tano', 'Rove Concepts', 'Tano curved sectional'],
+    ['sit-bookcase', 'DWR', 'Stacked Storage bookcase'],
     ['sit-focus', 'Icons of Denmark', 'Focus setting']
   ],
   materials: [
-    ['mat-plywood', 'Plywood', 'Interior'],
-    ['mat-mesh', 'Knitted HDPE mesh', 'Canopy'],
-    ['mat-perforated', 'Perforated wood', 'Pods'],
-    ['mat-fabric', 'Fabric', 'Interior seating'],
-    ['mat-dark-wood', 'Dark stained wood', 'Outdoors'],
-    ['mat-steel', 'Dark steel beams', 'Outdoor accents'],
-    ['mat-vinyl', 'Colored vinyl', 'Indoor wall accents']
+    ['mat-ash', 'Ash wood', 'Interior wood'],
+    ['mat-oak', 'Oak veneer', 'Millwork'],
+    ['mat-walnut', 'Walnut', 'Accents'],
+    ['mat-tile', 'Ceramic tile', 'Walls'],
+    ['mat-limestone', 'Brushed limestone', 'Stone'],
+    ['mat-carpet', 'Carpet', 'Flooring'],
+    ['mat-cushion-blue', 'Woven cushion', 'Seating, blue'],
+    ['mat-cushion-red', 'Woven cushion', 'Seating, red']
   ],
   palette: [['KU Blue', '#0067B1'], ['Obsidian', '#142E54'], ['Sky Blue', '#74CCF3'],
             ['Smoke', '#5C707C'], ['Brick', '#8A171A'], ['Crimson', '#E01D39']],
