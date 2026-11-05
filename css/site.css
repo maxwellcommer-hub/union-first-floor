@@ -101,9 +101,17 @@ a { color: inherit; }
 /* Marks are placed with the `translate` property (set from JS) so that `scale` on hover
    grows the circle in place instead of multiplying its position on the plan. */
 .pin, .zlabel, .entry, .ftlabel { position: absolute; left: 0; top: 0; }
+/* Stacking on the plan: the entrance and scale label at the bottom, then the number
+   circles, then zone titles, and any circle that is open, hovered or focused on top,
+   so a name tag is never covered by another circle or the entrance arrow. */
+.entry, .ftlabel { z-index: 1; }
+.pin { z-index: 2; }
+.zlabel { z-index: 4; }
+.pin.on { z-index: 5; }
+.pin:hover, .pin:focus-visible, .pin:focus-within { z-index: 6; }
 .pin { pointer-events: auto; margin: -15px 0 0 -15px; transition: background-color .2s, scale .2s var(--ease), opacity .25s; }
 .pin::after { content: ''; position: absolute; inset: -7px; border-radius: 50%; } /* bigger touch target */
-.pin.on { background: var(--crimson); scale: 1.2; z-index: 3; }
+.pin.on { background: var(--crimson); scale: 1.2; }
 .pin.dim { background: color-mix(in srgb, var(--smoke) 55%, #fff); } /* solid, so the view cones never show through a faded circle */
 .show-zones .pin:not(.on), .show-heat .pin:not(.on) { opacity: 0; pointer-events: none; }
 
