@@ -20,11 +20,11 @@ window.UNION = {
     { n: 2, name: 'Order / pickup', at: [1029.3, 365.1] },
     { n: 3, name: 'Dining', at: [876.6, 310.3] },
     { n: 4, name: 'Lounge / watch party', at: [916.7, 173.0] },
-    { n: 5, name: 'Donor walk', at: [1051.8, 478.2] },
-    { n: 6, name: 'Chill / event', at: [1119.4, 734.9] },
-    { n: 7, name: 'Bar', at: [1291.3, 408.0] },
-    { n: 8, name: 'Conference pods', at: [911.7, 636.8] },
-    { n: 9, name: 'Photo op', at: [1729.3, 524.1] }
+    { n: 5, name: 'Bar', at: [1291.3, 408.0] },
+    { n: 6, name: 'Donor walk', at: [1051.8, 478.2] },
+    { n: 7, name: 'Conference pods', at: [911.7, 636.8] },
+    { n: 8, name: 'Chill / event', at: [1119.4, 734.9] },
+    { n: 9, name: 'Stairs', at: [1729.3, 524.1] }
   ],
 
   /* The walk, in deck order. cam = where the view is taken from, look = what it faces. */
@@ -73,11 +73,11 @@ window.UNION = {
       cam: [1245.0, 105.0], look: [1140.0, 151.5],
       problem: 'No clear purpose.' },
 
-    { id: '06', title: 'The Bar', zone: 7, zoneLabel: 'Zone 7 · Bar',
+    { id: '06', title: 'The Bar', zone: 5, zoneLabel: 'Zone 5 · Bar',
       cam: [1470.0, 440.0], look: [1297.6, 401.7],
       problem: 'Nothing brings people.' },
 
-    { id: '07', title: 'Donor Walk', zone: 5, zoneLabel: 'Zone 5 · Donor walk',
+    { id: '07', title: 'Donor Walk', zone: 6, zoneLabel: 'Zone 6 · Donor walk',
       cam: [1017.7, 554.0], look: [1122.1, 373.7],
       problem: 'No reason to slow down.',
       build: [
@@ -90,7 +90,7 @@ window.UNION = {
       size: '7 @ 2′-0″ = 14′-0″ · ramp rises 1′-0″ over 14′-0″',
       revenue: 0 },
 
-    { id: '08', title: 'The Pods', zone: 8, zoneLabel: 'Zone 8 · Conference pods',
+    { id: '08', title: 'The Pods', zone: 7, zoneLabel: 'Zone 7 · Conference pods',
       cam: [958.0, 602.0], look: [898.0, 680.0],
       problem: 'Nowhere on the floor to focus.' },
 
@@ -98,12 +98,12 @@ window.UNION = {
       cam: [818.0, 958.5], look: [937.2, 828.3],
       problem: 'The terrace is cut off.' },
 
-    { id: '10', title: 'The Front', zone: 6, zoneLabel: 'Zone 6 · Chill / event',
+    { id: '10', title: 'The Front', zone: 8, zoneLabel: 'Zone 8 · Chill / event',
       cam: [1319.4, 505.3], look: [1146.1, 620.8],
       problem: 'A pass-through, not a destination.',
       revenue: 2 },
 
-    { id: '11', title: 'Window Decal', zone: 9, zoneLabel: 'Zone 9 · Photo op',
+    { id: '11', title: 'Window Decal', zone: 9, zoneLabel: 'Zone 9 · Stairs',
       cam: [1807.0, 547.7], look: [1632.1, 660.8],
       problem: 'No connection.',
       build: [
