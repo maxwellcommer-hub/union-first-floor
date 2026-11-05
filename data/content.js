@@ -30,7 +30,7 @@ window.UNION = {
   /* The walk, in deck order. cam = where the view is taken from, look = what it faces. */
   spaces: [
     { id: '01', title: 'The Mural', zone: 1, zoneLabel: 'Zone 1 · Campus history',
-      cam: [1160.0, 600.0], look: [1321.5, 528.7],
+      cam: [1482.0, 498.0], look: [1590.0, 430.0],
       problem: 'No clear sign of welcoming.',
       build: [
         ['Rock Chalk mural', 'North face of the elevator core. Printed wall graphic, floor to ceiling.'],

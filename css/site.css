@@ -97,7 +97,7 @@ a { color: inherit; }
 .cone.on { fill-opacity: .42; }
 .show-zones .cone:not(.on), .show-heat .cone:not(.on) { fill-opacity: 0; }
 
-.marks { position: absolute; inset: 0; pointer-events: none; }
+.marks { position: absolute; inset: 0; pointer-events: none; z-index: 2; } /* number circles sit above the view cones */
 /* Marks are placed with the `translate` property (set from JS) so that `scale` on hover
    grows the circle in place instead of multiplying its position on the plan. */
 .pin, .zlabel, .entry, .ftlabel { position: absolute; left: 0; top: 0; }
