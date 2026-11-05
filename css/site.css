@@ -104,7 +104,7 @@ a { color: inherit; }
 .pin { pointer-events: auto; margin: -15px 0 0 -15px; transition: background-color .2s, scale .2s var(--ease), opacity .25s; }
 .pin::after { content: ''; position: absolute; inset: -7px; border-radius: 50%; } /* bigger touch target */
 .pin.on { background: var(--crimson); scale: 1.2; z-index: 3; }
-.pin.dim { background: var(--smoke); opacity: .55; }
+.pin.dim { background: color-mix(in srgb, var(--smoke) 55%, #fff); } /* solid, so the view cones never show through a faded circle */
 .show-zones .pin:not(.on), .show-heat .pin:not(.on) { opacity: 0; pointer-events: none; }
 
 /* the name next to a circle: the same chip for a space's name and a zone's name */
