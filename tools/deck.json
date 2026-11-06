@@ -17,12 +17,20 @@
       ]
     },
     "02": {
-      "elevation": 21,
-      "before": "../Working Files/Before Photos/New_11-04/IMG_0621.jpg",
-      "after": "../Working Files/Dev/Renders_Emerson_11-05/621 museum.png"
+      "before": "../Working Files/Before Photos/New_11-04/IMG_0617.jpg",
+      "after": "../Working Files/Dev/Renders_Emerson_11-05/extra bar shot.png",
+      "views": [
+        "../Working Files/Dev/Renders_Emerson_11-05/617 bar.png",
+        "../Working Files/Dev/Renders_Emerson_11-05/extra bar from other view.png"
+      ]
     },
     "03": {
       "elevation": 24,
+      "before": "../Working Files/Before Photos/New_11-04/IMG_0621.jpg",
+      "after": "../Working Files/Dev/Renders_Emerson_11-05/621 museum.png"
+    },
+    "04": {
+      "elevation": 27,
       "before": "../Working Files/Before Photos/New_11-04/IMG_0626.jpg",
       "after": "../Working Files/Dev/Renders_Emerson_11-05/626 upper jay_000.png",
       "art": [
@@ -30,7 +38,7 @@
         "../Working Files/Mockups/murals/Josie_11-04/order_mural1.png"
       ]
     },
-    "04": {
+    "05": {
       "before": "../Working Files/Before Photos/New_11-04/IMG_0634.jpg",
       "after": "../Working Files/Dev/Renders_Emerson_11-05/634 back left jay.png",
       "views": [
@@ -39,20 +47,12 @@
         "../Working Files/Dev/Renders_Emerson_11-05/extra jay shot 3_000.png"
       ]
     },
-    "05": {
+    "06": {
       "before": "../Working Files/Before Photos/New_11-04/IMG_0631.jpg",
       "after": "../Working Files/Dev/Renders_Emerson_11-05/631 back right jay.png",
       "views": [
         "../Working Files/Dev/Renders_Emerson_11-05/extra jay shot2_000.png",
         "../Working Files/Dev/Renders_Emerson_11-05/extra jay shot.png"
-      ]
-    },
-    "06": {
-      "before": "../Working Files/Before Photos/New_11-04/IMG_0617.jpg",
-      "after": "../Working Files/Dev/Renders_Emerson_11-05/extra bar shot.png",
-      "views": [
-        "../Working Files/Dev/Renders_Emerson_11-05/617 bar.png",
-        "../Working Files/Dev/Renders_Emerson_11-05/extra bar from other view.png"
       ]
     },
     "07": {

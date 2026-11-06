@@ -17,10 +17,10 @@ window.UNION = {
 
   zones: [
     { n: 1, name: 'Campus history', note: 'start here', at: [1468.4, 344.1], hot: true },
-    { n: 2, name: 'Order / pickup', at: [1029.3, 365.1] },
-    { n: 3, name: 'Dining', at: [876.6, 310.3] },
-    { n: 4, name: 'Lounge / watch party', at: [916.7, 173.0] },
-    { n: 5, name: 'Bar', at: [1291.3, 408.0] },
+    { n: 2, name: 'Bar', at: [1291.3, 408.0] },
+    { n: 3, name: 'Order / pickup', at: [1029.3, 365.1] },
+    { n: 4, name: 'Dining', at: [876.6, 310.3] },
+    { n: 5, name: 'Lounge / watch party', at: [916.7, 173.0] },
     { n: 6, name: 'Donor walk', at: [1051.8, 478.2] },
     { n: 7, name: 'Conference pods', at: [911.7, 636.8] },
     { n: 8, name: 'Chill / event', at: [1119.4, 734.9] },
@@ -40,7 +40,11 @@ window.UNION = {
       notes: 'Both faces run lobby floor to ceiling. Unfolded at the corner so both faces read at true size.',
       size: '29′-6″ wide · 10′-0″ to the ceiling' },
 
-    { id: '02', title: 'Museum Wall', zone: 1, zoneLabel: 'Zone 1 · Campus history',
+    { id: '02', title: 'The Bar', zone: 2, zoneLabel: 'Zone 2 · Bar',
+      cam: [1470.0, 440.0], look: [1297.6, 401.7],
+      problem: 'Nothing brings people.' },
+
+    { id: '03', title: 'Museum Wall', zone: 1, zoneLabel: 'Zone 1 · Campus history',
       cam: [1553.9, 376.9], look: [1376.7, 267.3],
       problem: 'The history is scattered.',
       build: [
@@ -52,7 +56,7 @@ window.UNION = {
       notes: 'Boxes stack in 6 rows of 1′-0″. Box widths vary on a 3″ module. Set inside the lobby niche; nothing projects past the wall face.',
       size: '21′-6″ wide · 10′-0″ to the ceiling' },
 
-    { id: '03', title: 'Order Wall', zone: 2, zoneLabel: 'Zone 2 · Order / pickup',
+    { id: '04', title: 'Order Wall', zone: 3, zoneLabel: 'Zone 3 · Order / pickup',
       cam: [1259.8, 281.8], look: [1056.4, 327.0],
       problem: 'The counter doesn’t invite anyone to stay.',
       build: [
@@ -65,17 +69,13 @@ window.UNION = {
       size: '40′-6″ wide · 10′-6″ to the ceiling',
       revenue: 1 },
 
-    { id: '04', title: 'The Jay', zone: 4, zoneLabel: 'Zone 4 · Lounge / watch party',
+    { id: '05', title: 'The Jay', zone: 5, zoneLabel: 'Zone 5 · Lounge / watch party',
       cam: [865.0, 105.0], look: [970.0, 151.5],
       problem: 'Bland, low and empty between bookings.' },
 
-    { id: '05', title: 'Jay Games', zone: 4, zoneLabel: 'Zone 4 · Lounge / watch party',
+    { id: '06', title: 'Jay Games', zone: 5, zoneLabel: 'Zone 5 · Lounge / watch party',
       cam: [1245.0, 105.0], look: [1140.0, 151.5],
       problem: 'No clear purpose.' },
-
-    { id: '06', title: 'The Bar', zone: 5, zoneLabel: 'Zone 5 · Bar',
-      cam: [1470.0, 440.0], look: [1297.6, 401.7],
-      problem: 'Nothing brings people.' },
 
     { id: '07', title: 'Donor Walk', zone: 6, zoneLabel: 'Zone 6 · Donor walk',
       cam: [1017.7, 554.0], look: [1122.1, 373.7],
@@ -98,7 +98,7 @@ window.UNION = {
       cam: [818.0, 958.5], look: [937.2, 828.3],
       problem: 'The terrace is cut off.' },
 
-    { id: '10', title: 'The Front', zone: 8, zoneLabel: 'Zone 8 · Chill / event',
+    { id: '10', title: 'The Hawk’s Nest', zone: 8, zoneLabel: 'Zone 8 · Chill / event',
       cam: [1319.4, 505.3], look: [1146.1, 620.8],
       problem: 'A pass-through, not a destination.',
       revenue: 2 },
@@ -120,10 +120,10 @@ window.UNION = {
     who: 'Junior · Business · Commutes from off campus',
     quote: 'I need somewhere between classes that isn’t the library and isn’t my car.',
     day: [
-      { time: '11 AM', what: 'Coffee and a breakfast sandwich at the order wall.', space: '03' },
+      { time: '11 AM', what: 'Coffee and a breakfast sandwich at the order wall.', space: '04' },
       { time: '1 PM', what: 'Plugs in at a pod to prep a group presentation.', space: '08' },
-      { time: '4 PM', what: 'Ping pong at the Jay before his ride home.', space: '05' },
-      { time: '8 PM', what: 'Some nights, back for a watch party or an open mic.', space: '04' }
+      { time: '4 PM', what: 'Ping pong at the Jay before his ride home.', space: '06' },
+      { time: '8 PM', what: 'Some nights, back for a watch party or an open mic.', space: '05' }
     ],
     needs: ['Comfortable seats near an outlet.', 'Food and coffee without leaving the floor.', 'A reason to come back at night.']
   },
@@ -186,7 +186,7 @@ window.UNION = {
 
   revenue: [
     ['Donor wall', 'Named gifts along the donor walk.', '07'],
-    ['Lawrence cafe', 'A Lawrence-owned cafe at the order wall.', '03'],
+    ['Lawrence cafe', 'A Lawrence-owned cafe at the order wall.', '04'],
     ['Stage rental', 'Rent the stage for events and game days.', '10']
   ]
 };
